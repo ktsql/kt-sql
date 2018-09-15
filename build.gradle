@@ -1,8 +1,12 @@
 buildscript {
     ext.kotlin_version = '1.2.31'
+    ext.vertx_version = '3.5.3'
+    ext.calcite_version = '1.17.0'
+    ext.kotlinlogging_version = '1.5.6'
+    ext.cfg4j_version = '4.4.1'
 
     repositories {
-        maven { url 'http://maven.aliyun.com/nexus/content/groups/public/' }
+        mavenCentral()
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -14,21 +18,30 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'kotlin'
 
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'me.principality.Main'
+        )
+    }
+
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-}
-
-sourceSets {
-    main {
-        kotlin { srcDir "src/main/kotlin" }
-    }
-    test {
-        kotlin { srcDir "src/test/kotlin" }
-    }
+    compile "io.vertx:vertx-core:$vertx_version"
+    compile "io.vertx:vertx-lang-kotlin:$vertx_version"
+    compile "org.apache.calcite:calcite-core:$calcite_version"
+    compile "io.github.microutils:kotlin-logging:$kotlinlogging_version"
+    compile "org.cfg4j:cfg4j-core:$cfg4j_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
+    testCompile "junit:junit:4.12"
 }
 
 compileKotlin {
