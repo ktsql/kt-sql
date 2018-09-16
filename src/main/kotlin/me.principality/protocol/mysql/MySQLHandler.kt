@@ -3,10 +3,10 @@ package me.principality.protocol.mysql
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.net.NetSocket
+import me.principality.sqlexec.SqlPacketHandler
 import me.principality.protocol.mysql.helper.AuthorityHelper
 import me.principality.protocol.mysql.helper.ConnectionIdGenerator
 import me.principality.protocol.mysql.helper.MySQLSessionCache
-import me.principality.protocol.mysql.helper.PacketHandleHelper
 import me.principality.protocol.mysql.packet.MySQLPacketPayload
 import me.principality.protocol.mysql.packet.command.CommandPacket
 import me.principality.protocol.mysql.packet.command.CommandPacketFactory
@@ -17,7 +17,6 @@ import me.principality.protocol.mysql.packet.generic.ErrPacket
 import me.principality.protocol.mysql.packet.generic.OkPacket
 import me.principality.protocol.mysql.packet.handshake.HandshakePacket
 import me.principality.protocol.mysql.packet.handshake.HandshakeResponse41Packet
-import me.principality.sqlrewriter.SqlRewriterPacketHandler
 import mu.KotlinLogging
 import java.sql.SQLException
 
@@ -80,7 +79,7 @@ class MySQLHandler : Handler<NetSocket> {
         try {
             val payload = MySQLPacketPayload(buffer)
             val packet = getCommandPakcet(payload)
-            val responses = packet.execute(SqlRewriterPacketHandler())
+            val responses = packet.execute(SqlPacketHandler())
             if (!responses.isPresent()) {
                 return
             }

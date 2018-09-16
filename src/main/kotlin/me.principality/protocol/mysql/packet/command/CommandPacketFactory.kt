@@ -1,13 +1,11 @@
 package me.principality.protocol.mysql.packet.command
 
-import me.principality.backend.BackendPacketHandler
-import me.principality.protocol.mysql.packet.MySQLPacket
+import me.principality.sqlexec.SqlPacketHandler
 import me.principality.protocol.mysql.packet.MySQLPacketPayload
 import me.principality.protocol.mysql.packet.command.admin.ComInitDbPacket
 import me.principality.protocol.mysql.packet.command.admin.ComPingPacket
 import me.principality.protocol.mysql.packet.command.admin.ComQuitPacket
 import me.principality.protocol.mysql.packet.command.query.*
-import me.principality.sqlrewriter.SqlRewriterPacketHandler
 
 object CommandPacketFactory {
     fun createCommandPacket(sequenceId: Int, connectionId: Int, payload: MySQLPacketPayload): CommandPacket {
@@ -19,13 +17,13 @@ object CommandPacketFactory {
             CommandType.COM_INIT_DB ->
                 return ComInitDbPacket(sequenceId, payload)
             CommandType.COM_FIELD_LIST ->
-                return ComFieldListPacket(sequenceId, connectionId, payload, BackendPacketHandler())
+                return ComFieldListPacket(sequenceId, connectionId, payload, SqlPacketHandler())
             CommandType.COM_QUERY ->
-                return ComQueryPacket(sequenceId, connectionId, payload, SqlRewriterPacketHandler())
+                return ComQueryPacket(sequenceId, connectionId, payload, SqlPacketHandler())
             CommandType.COM_STMT_PREPARE ->
                 return ComStmtPreparePacket(sequenceId, payload)
             CommandType.COM_STMT_EXECUTE ->
-                return ComStmtExecutePacket(sequenceId, connectionId, payload, BackendPacketHandler())
+                return ComStmtExecutePacket(sequenceId, connectionId, payload, SqlPacketHandler())
             CommandType.COM_STMT_CLOSE ->
                 return ComStmtClosePacket(sequenceId, payload)
             CommandType.COM_PING ->
