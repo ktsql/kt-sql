@@ -1,5 +1,9 @@
 package me.principality.backend.hbase
 
+import org.apache.calcite.rel.type.RelDataType
+import org.apache.calcite.rel.type.RelDataTypeFactory
+import org.apache.calcite.schema.impl.AbstractTable
+
 /**
  * 通过实现不同类型的表，优化查询性能
  * https://calcite.apache.org/docs/tutorial.html#optimizing-queries-using-planner-rules
@@ -16,8 +20,18 @@ package me.principality.backend.hbase
  *
  * 关注：ScannableTable, FilterableTable, ProjectableFilterableTable, QueryableTable, TranslatableTable
  *
- * adapter负责对接calcite，最终的实现通过sharding来完成
+ * adapter负责对接calcite，最终的实现通过hbase-client来完成，如果要实现计算下推，采用TranslatableTable
  */
-class HBaseTable {
+abstract class HBaseTable : AbstractTable {
+    constructor() {
 
+    }
+
+    override fun getRowType(typeFactory: RelDataTypeFactory?): RelDataType {
+        TODO("to be implemented")
+    }
+
+    enum class Flavor {
+        SCANNABLE, FILTERABLE, TRANSLATABLE
+    }
 }

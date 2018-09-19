@@ -9,6 +9,10 @@
 https://dev.mysql.com/doc/dev/mysql-server/latest/PAGE_PROTOCOL.html
 https://mariadb.com/kb/en/library/clientserver-protocol/
 
+### SQL执行引擎
+
+使用calcite作为执行引擎，calcite的函数下推支持需要深度优化
+
 ### 后端
 
 实现对后端数据存储层的操作，calcite不负责实现后端多存储节点的处理，
@@ -20,6 +24,13 @@ https://mariadb.com/kb/en/library/clientserver-protocol/
 3. mvcc支持
 
 作为后端分布式Hash的存储层，有多个可选方案，后续根据情况进一步优化
+
+### 数据全局索引
+
+数据全局索引决定了分布式查询的效率
+- hbase需要建立二级索引方案
+- mongo把查询分发到所有的节点
+- vitess对每个需要查询的值所在位置建立索引(map)
 
 ### 工具
 
@@ -38,7 +49,3 @@ https://mariadb.com/kb/en/library/clientserver-protocol/
 2. 高性能
 采用异步回调的方式实现高性能处理，需要采用异步的方式对后端存储层进行处理。
 现Vert.x支持的后端为：Mongo, Redis, MySQL, Postgres, JDBC
-
-### 多节点
-
-暂不考虑

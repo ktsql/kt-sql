@@ -14,7 +14,7 @@ object ConfigureManager {
                         + "   schemas: [\n"
                         + "     {\n"
                         + "       type: 'custom',\n"
-                        + "       name: 'bad',\n"
+                        + "       name: 'hbase',\n"
                         + "       factory: 'me.principality.backend.hbase.HBaseSchemaFactory',\n"
                         + "       operand: {\n"
                         + "         directory: '/does/not/exist'\n"

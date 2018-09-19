@@ -16,16 +16,17 @@
 高效的NoSQL存储层实现：
 - MongoDB (https://github.com/igd-geo/mongomvcc)
 - Couchbase
-- OrientDB *
+- OrientDB
 - RethinkDB
 - ArangoDB
+
+Row column mixed
+- HBase
 
 KV-store实现方案，参考：
 - ssdb
 - ledisdb
 - ardb
-
-row column mixed
 
 ## 跨行事务
 
@@ -36,13 +37,6 @@ row column mixed
 - xiaomi themis
 - apache fluo
 - atlasDB
-
-## 数据全局索引
-
-数据全局索引决定了分布式查询的效率
-- mongo把查询分发到所有的节点
-- vitess对每个需要查询的值所在位置建立索引(map)
-- hbase需要建立二级索引方案
 
 ## 参考链接
 
