@@ -10,16 +10,18 @@ import java.util.*
 class ComQueryPacket: CommandPacket {
     private val sequenceId: Int
     private val sql: String
-    private val backendHandler: PacketHandleHelper
+    private val sqlexecHandler: PacketHandleHelper
 
     constructor(sequenceId: Int, connectionId: Int, payload: MySQLPacketPayload, handler: PacketHandleHelper) {
         this.sequenceId = sequenceId
         this.sql = payload.readStringEOF()
-        this.backendHandler = handler
+        this.sqlexecHandler = handler
     }
 
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
         TODO("not implemented")
+
+        return helper.execute(sql)
     }
 
     override fun getSequenceId(): Int {

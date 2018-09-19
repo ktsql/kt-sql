@@ -1,7 +1,6 @@
 package me.principality.protocol.mysql.packet.command.query
 
 import com.google.common.base.Preconditions
-import jdk.nashorn.internal.objects.annotations.Getter
 import me.principality.protocol.mysql.packet.MySQLPacket
 import me.principality.protocol.mysql.packet.MySQLPacketPayload
 import me.principality.protocol.mysql.packet.constant.ColumnType
