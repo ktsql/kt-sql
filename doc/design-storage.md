@@ -32,7 +32,6 @@ KV-store实现方案，参考：
 
 跨行事务可以纳入到存储层
 
-- Google Percolator
 - http://tephra.incubator.apache.org/#
 - xiaomi themis
 - apache fluo

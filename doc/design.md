@@ -25,6 +25,10 @@ https://mariadb.com/kb/en/library/clientserver-protocol/
 
 作为后端分布式Hash的存储层，有多个可选方案，后续根据情况进一步优化
 
+### 分布式事务
+
+参考 Google Percolator
+
 ### 数据全局索引
 
 数据全局索引决定了分布式查询的效率
@@ -32,11 +36,18 @@ https://mariadb.com/kb/en/library/clientserver-protocol/
 - mongo把查询分发到所有的节点
 - vitess对每个需要查询的值所在位置建立索引(map)
 
+华为hbase二级索引的实现
+https://github.com/Huawei-Hadoop/hindex.git
+
+### 用户自定义函数
+
+?
+
 ### 工具
 
 各种支撑的工具类，及周边功能
-- 分布式事务？
-- 如果后端不支持类SQL查询怎么办？
+- 分布式节点配置
+- 从其他数据源中同步数据
 
 ## 架构
 
