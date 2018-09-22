@@ -22,6 +22,12 @@
 
 Row column mixed
 - HBase
+- tera
+- hypertable
+- PaxosStore
+- Pegasus
+- Kudu
+- TiKV
 
 KV-store实现方案，参考：
 - ssdb
@@ -43,3 +49,10 @@ http://www.infoq.com/cn/articles/how-to-build-a-distributed-database
 https://db-engines.com/en/ranking/document+store
 https://db-engines.com/en/article/Wide+Column+Stores
 https://db-engines.com/en/ranking/key-value+store
+
+## 二级索引
+
+华为hbase二级索引的实现
+https://github.com/Huawei-Hadoop/hindex.git
+
+hbase二级索引思路：通过索引值反查RowKey，每一个索引键创建一个相应的表

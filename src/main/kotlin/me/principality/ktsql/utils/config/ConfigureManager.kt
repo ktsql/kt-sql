@@ -2,7 +2,7 @@ package me.principality.ktsql.utils.config
 
 import java.util.*
 
-// TODO rename?
+// TODO rename? put data to zookeeper?
 object ConfigureManager {
     val info = Properties()
 

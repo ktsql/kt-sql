@@ -22,16 +22,4 @@ class SqlPacketHandler : PacketHandleHelper {
         connection.close()
         return ret
     }
-    /*
-        Class.forName("org.apache.calcite.jdbc.Driver")
-
-    // meta 初始化，将来通过统一的meta服务获得
-    val inputStream = getClass().getClassLoader().getResourceAsStream("model.json")
-    val info = new Properties
-    info.setProperty("model", Source.fromInputStream(inputStream).mkString) // 传入文件路径，或直接inline:配置内容
-
-    // 连接管理及调用，这里调用calcite，calcite后端实现通过连接池进行优化
-    val connection = DriverManager.getConnection("jdbc:calcite:", info)
-    connection
-     */
 }
