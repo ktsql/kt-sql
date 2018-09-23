@@ -11,7 +11,7 @@ import org.apache.calcite.schema.TranslatableTable
 import java.lang.reflect.Type
 
 /**
- *
+ * 未实现，下推的算法要进一步考虑
  */
 class HBaseTranslatableTable: HBaseTable, QueryableTable, TranslatableTable {
     constructor() {

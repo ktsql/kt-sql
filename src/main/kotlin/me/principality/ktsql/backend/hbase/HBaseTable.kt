@@ -41,6 +41,9 @@ abstract class HBaseTable : AbstractTable {
 
     }
 
+    /**
+     * 实现从不同数据源数据类型映射/转换到Calcite数据类型的逻辑
+     */
     override fun getRowType(typeFactory: RelDataTypeFactory?): RelDataType {
         TODO("to be implemented")
     }

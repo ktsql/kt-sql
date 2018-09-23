@@ -10,7 +10,9 @@ class HBaseProjectableFilterableTable: HBaseTable, ProjectableFilterableTable {
 
     }
 
-    override fun scan(root: DataContext?, filters: MutableList<RexNode>?, projects: IntArray?): Enumerable<Array<Any>> {
+    override fun scan(root: DataContext?,
+                      filters: MutableList<RexNode>?,
+                      projects: IntArray?): Enumerable<Array<Any>> {
         TODO("not implemented")
     }
 }

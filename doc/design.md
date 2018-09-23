@@ -32,6 +32,8 @@ https://mariadb.com/kb/en/library/clientserver-protocol/
 - mongo把查询分发到所有的节点
 - vitess对每个需要查询的值所在位置建立索引(map)
 
+实现calcite对自定义语句的支持
+
 ### 分布式事务
 
 参考 Google Percolator
