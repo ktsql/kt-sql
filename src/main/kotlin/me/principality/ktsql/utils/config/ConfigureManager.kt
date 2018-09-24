@@ -17,7 +17,7 @@ object ConfigureManager {
                         + "       name: 'hbase',\n"
                         + "       factory: 'me.principality.backend.hbase.HBaseSchemaFactory',\n"
                         + "       operand: {\n"
-                        + "         directory: '/does/not/exist'\n"
+                        + "         zkquorum: '127.0.0.1:2222'\n"
                         + "       }\n"
                         + "     }\n"
                         + "   ]\n"
@@ -25,7 +25,7 @@ object ConfigureManager {
     }
 
     fun getLoginAuthority(): LoginAuthority {
-        return LoginAuthority("user", "pass") //TODO fix it
+        return LoginAuthority("user", "pass") //TODO add authority implement
     }
 
     fun getCalciteConfig(): Properties {

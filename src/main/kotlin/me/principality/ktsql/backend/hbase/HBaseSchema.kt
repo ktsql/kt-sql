@@ -1,6 +1,7 @@
 package me.principality.ktsql.backend.hbase
 
 import org.apache.calcite.schema.impl.AbstractSchema
+import org.apache.hadoop.hbase.client.Connection
 
 /**
  * Calcite对表的创建有几种：
@@ -16,21 +17,18 @@ import org.apache.calcite.schema.impl.AbstractSchema
  * 根据HBase的架构，要读取数据时，首先需去RootRegion获取RowKey对应的MetaRegion，
  * 再从MetaRegion获得最终数据所在的RegionServer，此时再使用RegionClient读取数据
  *
- * 以下是asynchbase中的相关说明：
+ * 考虑到HBase会动态扩展，所以每次表连接时获取region list才能保证拿到，
+ * 有两种方法可以保证这一点：1、监听zookeeper的变化；2、如果region client报错，重新连接
  *
- * 摘录自HBaseClient的注释
- *
- * 1. HBaseClient每连接只需创建一次（共享给多个协程使用）
- * 2. 通过HBaseRpc请求HBaseClient，未完成回调前，不可修改HBaseRpc
- * 3. Exception采用对defer进行处理的模式
- *
- * 摘录自RegionClient的注释
- * 1. RegionClient并非线程安全
- *
- * 摘录自ZKClient的注释
- * 1. zookeeper提供region server是否在线以及RootRegion的信息
+ * 为了保证性能，现采用后者处理region list
+ * 1、schema获取region list并缓存
+ * 2、schema提供重新获取region list的接口，并初始化到table中
+ * 3、如果table发现regionclient出错，通过schema重新获取region list
  */
 class HBaseSchema: AbstractSchema {
-    constructor() {
+    val connection: Connection
+
+    constructor(connection: Connection) {
+        this.connection = connection
     }
 }

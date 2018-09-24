@@ -6,7 +6,6 @@ import me.principality.ktsql.protocol.mysql.packet.command.admin.ComInitDbPacket
 import me.principality.ktsql.protocol.mysql.packet.command.admin.ComPingPacket
 import me.principality.ktsql.protocol.mysql.packet.command.admin.ComQuitPacket
 import me.principality.ktsql.protocol.mysql.packet.command.query.*
-import me.principality.protocol.mysql.packet.command.query.*
 
 object CommandPacketFactory {
     fun createCommandPacket(sequenceId: Int, connectionId: Int, payload: MySQLPacketPayload): CommandPacket {

@@ -2,9 +2,9 @@ buildscript {
     ext.kotlin_version = '1.2.31'
     ext.vertx_version = '3.5.3'
     ext.calcite_version = '1.17.0'
-    ext.asynchbase_version = '1.8.2'
     ext.kotlinlogging_version = '1.5.6'
     ext.cfg4j_version = '4.4.1'
+    ext.hbaseclient_version = '2.1.0'
 
     repositories {
         mavenCentral()
@@ -39,7 +39,7 @@ dependencies {
     compile "io.vertx:vertx-core:$vertx_version"
     compile "io.vertx:vertx-lang-kotlin:$vertx_version"
     compile "org.apache.calcite:calcite-core:$calcite_version"
-    compile "org.hbase:asynchbase:$asynchbase_version"
+    compile group: 'org.apache.hbase', name: 'hbase-client', version: "$hbaseclient_version"
     compile "io.github.microutils:kotlin-logging:$kotlinlogging_version"
     compile "org.cfg4j:cfg4j-core:$cfg4j_version"
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"

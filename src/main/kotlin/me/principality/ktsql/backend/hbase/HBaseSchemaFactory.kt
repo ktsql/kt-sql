@@ -3,6 +3,10 @@ package me.principality.ktsql.backend.hbase
 import org.apache.calcite.schema.Schema
 import org.apache.calcite.schema.SchemaFactory
 import org.apache.calcite.schema.SchemaPlus
+import org.apache.hadoop.hbase.HBaseConfiguration
+import org.apache.hadoop.hbase.HConstants
+import org.apache.hadoop.hbase.client.ConnectionFactory
+import java.lang.IllegalArgumentException
 
 /**
  * https://calcite.apache.org/docs/tutorial.html
@@ -14,12 +18,23 @@ import org.apache.calcite.schema.SchemaPlus
  *
  * 完成以下初始化功能：
  * 1. 完成与后端连接的初始化
- * 2. 把后端连接传递给JdbcSchema
+ * 2. 把后端连接传递给HBaseSchema
+ *
+ * Schema的创建是一次性的，把需要保存的上下文放到Schema中
  */
-class HBaseSchemaFactory: SchemaFactory {
+class HBaseSchemaFactory : SchemaFactory {
     override fun create(parentSchema: SchemaPlus?,
                         name: String?,
                         operand: MutableMap<String, Any>?): Schema {
-        TODO("to be implemented")
+        if (name != "hbase") {
+            throw IllegalArgumentException("properties schemas name error")
+        }
+
+        if (operand == null || operand.isEmpty()) {
+            throw IllegalArgumentException("properties schemas operand error")
+        }
+
+        HBaseConnection.init(operand)
+        return HBaseSchema(HBaseConnection.connection())
     }
 }
