@@ -54,6 +54,14 @@ AsyncHBase提供了通过ZKClient获取HBase RootRegion连接地址的方法
 摘录自ZKClient的注释
 1. zookeeper提供region server是否在线以及RootRegion的信息
 
+考虑到HBase会动态扩展，所以每次表连接时获取region list才能保证拿到，
+有两种方法可以保证这一点：1、监听zookeeper的变化；2、如果region client报错，重新连接
+
+为了保证性能，现采用后者处理region list
+1、schema获取region list并缓存
+2、schema提供重新获取region list的接口，并初始化到table中
+3、如果table发现regionclient出错，通过schema重新获取region list
+
 ## 参考链接
 
 http://www.infoq.com/cn/articles/how-to-build-a-distributed-database

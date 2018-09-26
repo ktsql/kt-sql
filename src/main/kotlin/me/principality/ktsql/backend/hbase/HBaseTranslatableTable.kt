@@ -8,14 +8,14 @@ import org.apache.calcite.rel.RelNode
 import org.apache.calcite.schema.QueryableTable
 import org.apache.calcite.schema.SchemaPlus
 import org.apache.calcite.schema.TranslatableTable
+import org.apache.hadoop.hbase.HTableDescriptor
 import java.lang.reflect.Type
 
 /**
- * 未实现，下推的算法要进一步考虑
+ * 未实现，下推算法如何做要进一步考虑
  */
 class HBaseTranslatableTable: HBaseTable, QueryableTable, TranslatableTable {
-    constructor() {
-
+    constructor(name: String, htable: HTableDescriptor) : super(name, htable) {
     }
 
     override fun <T : Any?> asQueryable(queryProvider: QueryProvider?,

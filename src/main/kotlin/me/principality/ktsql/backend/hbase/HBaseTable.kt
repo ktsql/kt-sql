@@ -3,6 +3,7 @@ package me.principality.ktsql.backend.hbase
 import org.apache.calcite.rel.type.RelDataType
 import org.apache.calcite.rel.type.RelDataTypeFactory
 import org.apache.calcite.schema.impl.AbstractTable
+import org.apache.hadoop.hbase.HTableDescriptor
 
 /**
  * 通过实现不同类型的表，优化查询性能
@@ -37,8 +38,12 @@ import org.apache.calcite.schema.impl.AbstractTable
  * SQL查询应尽量考虑把project, filter以及aggregate下推到region server，从而获得更好的性能
  */
 abstract class HBaseTable : AbstractTable {
-    constructor() {
+    protected val name: String
+    protected val htable: HTableDescriptor
 
+    constructor(name: String, htable: HTableDescriptor) {
+        this.name = name
+        this.htable = htable
     }
 
     /**
@@ -49,6 +54,6 @@ abstract class HBaseTable : AbstractTable {
     }
 
     enum class Flavor {
-        SCANNABLE, FILTERABLE, TRANSLATABLE
+        SCANNABLE, FILTERABLE, PROJECTFILTERABLE
     }
 }

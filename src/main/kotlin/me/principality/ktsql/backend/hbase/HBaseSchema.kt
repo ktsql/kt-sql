@@ -1,7 +1,12 @@
 package me.principality.ktsql.backend.hbase
 
+import com.google.common.collect.ImmutableMap
+import mu.KotlinLogging
+import org.apache.calcite.schema.Table
 import org.apache.calcite.schema.impl.AbstractSchema
+import org.apache.hadoop.hbase.HTableDescriptor
 import org.apache.hadoop.hbase.client.Connection
+import org.apache.hadoop.hbase.client.Admin
 
 /**
  * Calcite对表的创建有几种：
@@ -17,18 +22,52 @@ import org.apache.hadoop.hbase.client.Connection
  * 根据HBase的架构，要读取数据时，首先需去RootRegion获取RowKey对应的MetaRegion，
  * 再从MetaRegion获得最终数据所在的RegionServer，此时再使用RegionClient读取数据
  *
- * 考虑到HBase会动态扩展，所以每次表连接时获取region list才能保证拿到，
- * 有两种方法可以保证这一点：1、监听zookeeper的变化；2、如果region client报错，重新连接
+ * 从jdbc调用后端的过程为：
+ * 1. 创建connection，此时会完成schema的创建，schema需要准备好表创建的逻辑
+ * 2. 通过connection获取statement，并通过statement执行sql，此时会创建表
  *
- * 为了保证性能，现采用后者处理region list
- * 1、schema获取region list并缓存
- * 2、schema提供重新获取region list的接口，并初始化到table中
- * 3、如果table发现regionclient出错，通过schema重新获取region list
+ * TODO calcite没有释放connection, admin, htable的机制
  */
-class HBaseSchema: AbstractSchema {
-    val connection: Connection
+class HBaseSchema : AbstractSchema {
+    private val logger = KotlinLogging.logger {}
+    private val connection: Connection
+    private lateinit var tableMap: Map<String, Table>
 
     constructor(connection: Connection) {
         this.connection = connection
+    }
+
+    override fun getTableMap(): Map<String, Table> {
+        if (tableMap == null) {
+            tableMap = createTableMap()
+        }
+        return tableMap
+    }
+
+    private fun createTableMap(): Map<String, Table> {
+        val admin = connection.admin
+        val tables = admin.listTables()
+
+        if (tables.size == 0) {
+            logger.debug("find none table")
+        }
+
+        val builder = ImmutableMap.builder<String, Table>()
+        for (table in tables) {
+            val source = table.nameAsString
+            val table = createTable(source, table)
+            builder.put(source, table)
+        }
+        tableMap = builder.build()
+        return tableMap
+    }
+
+    private fun createTable(name: String, table: HTableDescriptor): Table {
+        when (HBaseConnection.flavor()) {
+            HBaseTable.Flavor.SCANNABLE -> return HBaseScanableTable(name, table)
+            HBaseTable.Flavor.FILTERABLE -> return HBaseFilterableTable(name, table)
+            HBaseTable.Flavor.PROJECTFILTERABLE -> return HBaseProjectableFilterableTable(name, table)
+            else -> throw AssertionError("Unknown flavor " + HBaseConnection.flavor())
+        }
     }
 }
