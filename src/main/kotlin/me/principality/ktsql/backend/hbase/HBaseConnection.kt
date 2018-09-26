@@ -4,6 +4,7 @@ import org.apache.hadoop.hbase.HBaseConfiguration
 import org.apache.hadoop.hbase.HConstants
 import org.apache.hadoop.hbase.client.Connection
 import org.apache.hadoop.hbase.client.ConnectionFactory
+import java.util.*
 
 /**
  * 统一管理HBaseConnection，避免重复创建
@@ -27,6 +28,13 @@ object HBaseConnection {
 
         isInit = true
         connection = ConnectionFactory.createConnection(config)
+        val flavorName = operand?.get("flavor").toString()
+        val flavor: HBaseTable.Flavor
+        if (flavorName == null) {
+            flavor = HBaseTable.Flavor.SCANNABLE
+        } else {
+            flavor = HBaseTable.Flavor.valueOf(flavorName.toUpperCase(Locale.ROOT))
+        }
     }
 
     fun connection(): Connection {

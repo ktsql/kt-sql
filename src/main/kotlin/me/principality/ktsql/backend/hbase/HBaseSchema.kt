@@ -6,7 +6,6 @@ import org.apache.calcite.schema.Table
 import org.apache.calcite.schema.impl.AbstractSchema
 import org.apache.hadoop.hbase.HTableDescriptor
 import org.apache.hadoop.hbase.client.Connection
-import org.apache.hadoop.hbase.client.Admin
 
 /**
  * Calcite对表的创建有几种：
@@ -62,12 +61,12 @@ class HBaseSchema : AbstractSchema {
         return tableMap
     }
 
-    private fun createTable(name: String, table: HTableDescriptor): Table {
+    private fun createTable(name: String, descriptor: HTableDescriptor): Table {
         when (HBaseConnection.flavor()) {
-            HBaseTable.Flavor.SCANNABLE -> return HBaseScanableTable(name, table)
-            HBaseTable.Flavor.FILTERABLE -> return HBaseFilterableTable(name, table)
-            HBaseTable.Flavor.PROJECTFILTERABLE -> return HBaseProjectableFilterableTable(name, table)
-            else -> throw AssertionError("Unknown flavor " + HBaseConnection.flavor())
+            HBaseTable.Flavor.SCANNABLE -> return HBaseScanableTable(name, descriptor)
+            HBaseTable.Flavor.FILTERABLE -> return HBaseFilterableTable(name, descriptor)
+            HBaseTable.Flavor.PROJECTFILTERABLE -> return HBaseProjectableFilterableTable(name, descriptor)
+            else -> throw IllegalArgumentException("Unknown flavor " + HBaseConnection.flavor())
         }
     }
 }

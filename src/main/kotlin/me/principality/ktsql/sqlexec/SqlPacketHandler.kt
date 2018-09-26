@@ -16,9 +16,12 @@ class SqlPacketHandler : PacketHandleHelper {
     override fun execute(sql: String): Optional<CommandResponsePackets> {
         val info = ConfigureManager.getCalciteConfig()
         val connection = DriverManager.getConnection("jdbc:calcite:", info)
-        val tables = connection.metaData.getTables(null, null, null, null)
-        val ret = SqlUtil.toResponse(tables)
-        tables.close()
+
+        val statement = connection.createStatement()
+        val sets = statement.executeQuery(sql)
+        val ret = SqlUtil.toResponse(sets)
+        sets.close()
+
         connection.close()
         return ret
     }

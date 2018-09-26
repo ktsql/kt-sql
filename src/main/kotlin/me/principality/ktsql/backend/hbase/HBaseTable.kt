@@ -3,7 +3,14 @@ package me.principality.ktsql.backend.hbase
 import org.apache.calcite.rel.type.RelDataType
 import org.apache.calcite.rel.type.RelDataTypeFactory
 import org.apache.calcite.schema.impl.AbstractTable
+import org.apache.calcite.util.Pair
 import org.apache.hadoop.hbase.HTableDescriptor
+import org.apache.hadoop.hbase.TableName
+import org.apache.hadoop.hbase.client.Table
+import java.util.ArrayList
+import org.apache.hadoop.hbase.HColumnDescriptor
+
+
 
 /**
  * 通过实现不同类型的表，优化查询性能
@@ -39,20 +46,53 @@ import org.apache.hadoop.hbase.HTableDescriptor
  */
 abstract class HBaseTable : AbstractTable {
     protected val name: String
-    protected val htable: HTableDescriptor
+    protected val htableDescriptor: HTableDescriptor
+    protected val table: Table
 
-    constructor(name: String, htable: HTableDescriptor) {
+    constructor(name: String, descriptor: HTableDescriptor) {
         this.name = name
-        this.htable = htable
+        this.htableDescriptor = descriptor
+        this.table = HBaseConnection.connection().getTable(TableName.valueOf(name))
     }
 
     /**
-     * 实现从不同数据源数据类型映射/转换到Calcite数据类型的逻辑
+     * 通过该函数获得the names and types of a table's columns
+     *
+     * 可以通过hbase的表接口获得该信息，需要注意的是：
+     * 如何实现从不同数据源数据类型映射/转换到Calcite数据类型的逻辑？
+     *
+     * HBase的column是不区分类型的
      */
     override fun getRowType(typeFactory: RelDataTypeFactory?): RelDataType {
-        TODO("to be implemented")
+        if (typeFactory == null) {
+            throw IllegalArgumentException("RelDataTypeFactory is null")
+        }
+
+        val types = ArrayList<RelDataType>()
+        val names = ArrayList<String>()
+
+        // 遍历获得每一个column的类型，借助HColumnDescriptor
+        val columnDescriptors = htableDescriptor.getColumnFamilies()
+
+        for (column in columnDescriptors) {
+            val javaType = typeFactory.createJavaType(String::class.java)
+            val sqlType = typeFactory.createSqlType(javaType.sqlTypeName)
+
+            names.add(column.nameAsString)
+            types.add(sqlType)
+        }
+
+        return typeFactory.createStructType(Pair.zip(names, types))
     }
 
+    /**
+     * 对表的数据读取方式进行定义，
+     * - 如果是全表扫描，过滤和投影由calcite完成
+     * - 如果是过滤扫描，投影由calcite完成
+     * - 如果是投影过滤，则calcite没有额外的工作
+     *
+     * 实现三种模式的处理，可以对性能进行比较测试
+     */
     enum class Flavor {
         SCANNABLE, FILTERABLE, PROJECTFILTERABLE
     }
