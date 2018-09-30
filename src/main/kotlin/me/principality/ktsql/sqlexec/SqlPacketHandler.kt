@@ -13,9 +13,11 @@ import java.util.*
  * 虽然有calcite内部api，但使用jdbc api有助于接口的规范化。
  */
 class SqlPacketHandler : PacketHandleHelper {
+    private val connectionString = "jdbc:calcite:parserFactory=org.apache.calcite.sql.parser.ddl.SqlDdlParserImpl#FACTORY"
+
     override fun execute(sql: String): Optional<CommandResponsePackets> {
         val info = ConfigureManager.getCalciteConfig()
-        val connection = DriverManager.getConnection("jdbc:calcite:", info)
+        val connection = DriverManager.getConnection(connectionString, info)
 
         val statement = connection.createStatement()
         val sets = statement.executeQuery(sql)

@@ -39,6 +39,7 @@ dependencies {
     compile "io.vertx:vertx-core:$vertx_version"
     compile "io.vertx:vertx-lang-kotlin:$vertx_version"
     compile "org.apache.calcite:calcite-core:$calcite_version"
+    compile "org.apache.calcite:calcite-server:$calcite_version"
     compile group: 'org.apache.hbase', name: 'hbase-client', version: "$hbaseclient_version"
     compile "io.github.microutils:kotlin-logging:$kotlinlogging_version"
     compile "org.cfg4j:cfg4j-core:$cfg4j_version"

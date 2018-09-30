@@ -7,7 +7,7 @@ import org.apache.calcite.schema.ProjectableFilterableTable
 import org.apache.hadoop.hbase.HTableDescriptor
 
 class HBaseProjectableFilterableTable(name: String, descriptor: HTableDescriptor) :
-        HBaseTable(name, descriptor), ProjectableFilterableTable {
+        HBaseModifiableTable(name, descriptor), ProjectableFilterableTable {
 
     override fun scan(root: DataContext?,
                       filters: MutableList<RexNode>?,
@@ -21,8 +21,9 @@ class HBaseProjectableFilterableTable(name: String, descriptor: HTableDescriptor
                 CompareOp.GREATER,
                 Bytes.toBytes("1500")
         );
-//To prevent the entire row from being emitted
-//if the column is not found on a row
+
+        //To prevent the entire row from being emitted
+        //if the column is not found on a row
         scan.setFilterIfMissing(true)
         scan.setFilter(filter);
 
