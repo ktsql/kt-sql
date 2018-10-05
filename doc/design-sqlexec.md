@@ -2,16 +2,16 @@
 
 ## SQL扩展
 https://calcite.apache.org/docs/adapter.html#extending-the-parser
-CREATE INDEX(indextype) index_name ON table(column_name[ ASC | DESC ] [ ,...n ])
+CREATE INDEX index_name[(indextype)] ON table(column_name[ ASC | DESC ] [ ,...n ])
 DROP INDEX <index_name> ON table
 
-## Calcite语法分析实现
+### Calcite语法分析实现
 
 Calcite的语法解析文件 file (Parser.jj) 用 javacc (http://javacc.java.net/)
 和 Freemarker (http://freemarker.org/) 编写，Freemaker为Parser.jj提供了变量设置的功能，
 通过fmpp(freemaker)的支持，可以在语法解析前，先做变量替换，然后再做代码生成
 
-### FreeMaker
+#### FreeMaker
 
 fmpp: http://fmpp.sourceforge.net
 
@@ -19,7 +19,7 @@ fmpp设置的值，会被替换到.jj文件中，可以通过.fmpp文件进行�
 
 fmpp内置了FreeMaker的引擎，通过调用fmpp core即可使用FreeMaker和fmpp的扩展功能
 
-### JavaCC
+#### JavaCC
 
 https://www.ibm.com/developerworks/cn/xml/x-javacc/part1/index.html
 https://www.ibm.com/developerworks/cn/xml/x-javacc/part2/
@@ -35,10 +35,113 @@ JavaCC .jj 文件语法和标准的 BNF 之间的主要区别在于：利用 Jav
 
 http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
 
+#### 语法树实现、执行的说明
+
+如果要生成CREATE TABLE的语法树，calcite的实现方法是：
+1. 在calcite-core中预留了create开头的语法（这意味着如果要创建新的语法需要修改calcite-core）
+2. 在calcite-server中，对create的实例进行初始化
+  - 通过配置config.fmpp，完成create的后续语法的对应函数（在calcite-core定义了create后继语法为相应的SqlCreate）
+  - 通过配置parserImpls.ftl，完成后续节点的语法解析，并完成JavaCC生成的parser函数与实际创建语法树节点的调用关联
+3. 按parser.jj规范完成逻辑的代码实现后，生成的结果为SqlNode，SqlNode生成语法树、逻辑计划优化等环节不需关注，直接关注节点执行即可
+4. 节点的执行，参考org.apache.calcite.interpreter的实现，由SqlNode转换成RelNode后，Interpreter负责执行
+
+因为JavaCC并没有生成语法树这一环节，所以从解析到语法树建立这一步需要手动写代码，
+在JavaCC BNF表达式中，如果碰到匹配的语法，则创建相应的语法树节点，通过深度搜索建立SqlNode嵌套关联的方式，建立语法树
+
 ### 扩展语法的步骤
 
 如果是已经在语法中支持的操作，如create/drop操作
 
-1. 使用calcite项目的calcite-server
-2. 修改config.fmpp（可以参考calcite-core/server）的说明，添加keyword、对应的处理函数
-3. 在parserImpls.ftl/compoundIdentifier.ftl补充相应的JavaCC BNF表达式
+1. 使用calcite项目的calcite-server进行代码扩展
+2. 修改config.fmpp（可以参考calcite-core/server）的例子，添加keyword，必要的对应处理函数
+3. 在parserImpls.ftl/compoundIdentifier.ftl补充相应的JavaCC BNF表达式，以及对应的SqlNode创建函数
+4. 拓展org.apache.calcite.sql.ddl，在SqlDdlNodes增加上一步添加的创建函数，并创建相应的SqlNode
+5. 根据SqlNode的逻辑要求，实现创建的节点的相关逻辑，融入到calcite-core的执行流程中
+
+注：
+- 如果是基于calcite-core扩展的节点，在优化逻辑计划的时候，节点会有对应匹配的扩展规则，否则需要扩展calcite-core
+- 如果SqlNode需要表达的元素不足，如在核心库中不支持的SqlKind，则需要通过修改calcite-core完成
+
+## SQL执行速度的提升
+
+参考LocustDB和MapD的思路，对calcite进行优化
+
+一个完整的SQL语句执行的流程是：
+1. 解析输入流，生成语法树
+2. 语法树优化，生成逻辑计划
+3. 在一个运行环境中运行执行计划
+
+因为SQL语言应用时的复杂度并不高，所以代码解析、生成、优化环节复杂度有限，
+运行环节的消耗才是最耗时的环节，在一个分布式的网络环境中对大量的数据进行处理，
+数据的读取、计算、汇总处理都有大量的耗时
+
+如果把处理分布到设备中，读取、计算进行下推后，汇总处理节点则成为性能的瓶颈，
+如在一个万兆的网络环境，每秒读入约1G的数据（压缩后且为投影数据），
+这意味着需要在秒级处理上亿行的数据，计算单元必须要具备对应的计算能力
+
+## Calcite代码笔记
+
+### SqlNode & RelNode
+
+SqlNode的生成采用JavaCC BNF解析的方式生成，以嵌套语法树的方式组织。
+Calcite提供了SqlToRelConverter把SqlNode转换成RelNode，以便执行计划优化器对语法树进行优化，
+RelNode的结构组织也是嵌套语法树，完成优化后，由interpreter解释执行。
+
+解释执行的入口为execute调用，如execute(), executeQuery(), executeDdl()。
+执行的运行空间为单核单线程，具有巨大的性能提升空间。
+
+### Meta
+
+在calcite中引入了几个概念：
+1. schema 用于表述初始化所需的信息，如库名，因其实现的原因，只能只读
+2. meta 用于表达保存的数据的元信息，针对每一实现，官方建议都实现自己的meta
+3. metadata 用于sql解析的元数据信息
+
+CalciteSchema根据配置文件生成，保存在单个JVM的内存中，在一个分布式的环境，
+Calcite的设计决定了CalciteSchema统一保存、只读访问的属性
+
+因为calcite实现的原因，如果要保存表结构、表索引等信息，应当采用Meta。
+如果需要对Meta的信息进行控制，需要实现自己的Meta，如在分布式环境可用的Meta。
+calcite-core实现了CalciteMetaImpl，并把CalciteMetaImpl作为组件，放到了MetadataSchema中。
+MetadataSchema是schema的子类，在rootSchema创建时被初始化并添加到rootSchema中，
+rootSchema在创建时，会被传到SchemaFactory中，通过该方式，可以借助Schema获取meta的信息。
+
+CalciteMetaImpl独立创建了一个连接，用于访问Meta信息，可以通过继承CalciteMetaImpl创建新的Meta实现类。
+
+jdbc规范中，包含两个metadata的定义：1、resultset的metadata；2、connection获取的metadata。
+分别对应calcite-metadata和calcite-meta
+
+因为要支持index和事务的原因，需要接管calcite的meta实现，方法为：
+通过继承改写org.apache.calcite.jdbc.Driver，实现原有逻辑的子类，传一个新的Schema进去
+需重新实现CalciteSchema，对MetadataSchema进行改写，实现新的MetaImpl逻辑
+
+### calcite-core
+
+calcite-core依赖以下模块：
+1. calcite-linq4j
+2. calcite-avatica
+3. calcite-avatica-server
+
+calcite对外调用提供了jdbc接口：
+jdbc是calcite-core内置功能，在官方文档中，如何使用calcite也是以jdbc为基础介绍如何使用
+
+linq4j是底层数据查询的支持类
+
+avatica/avatica-server是支持网络连接的jdbc接口，calcite-core中的jdbc(本地)实现，
+使用了avatica中的实现代码
+
+注意jdbc中connection的继承关系：
+abstract class CalciteConnectionImpl
+    extends AvaticaConnection
+    implements CalciteConnection, QueryProvider
+CalciteConnectionImpl最终实现了AvaticaConnection(jdbc), CalciteConnection(calciteI), QueryProvider(linq4j)
+
+calcite在作为lib内嵌到其他程序中时，注册了jdbc driver(有remote和local两种模式），
+当访问jdbc connection时，会访问org.apache.calcite.avatica.UnregisteredDriver的connect(url, info)函数，
+(通过DriverManager.getConnection()访问org.apache.calcite.jdbc.Driver，Driver是UnregisteredDriver子类)
+
+CalciteConnectionImpl创建时，会生成CalciteSchema，CalciteSchema创建MetadataSchema，因为Schema是一个可传进去的参数，
+所以存在在调用connect函数时，把自定义的Schema传进去的可能，只需重写自己的Driver即可
+
+calcite对jdbc的处理提供了几种扩展机制，如子类继承、设置handler对connection、statement进行处理，
+具备了一定情况下无需入侵源代码即可实现自定义逻辑的可能

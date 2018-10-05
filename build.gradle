@@ -35,14 +35,18 @@ repositories {
 }
 
 dependencies {
+    // 核心类库
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "io.vertx:vertx-core:$vertx_version"
     compile "io.vertx:vertx-lang-kotlin:$vertx_version"
+    // 功能库
     compile "org.apache.calcite:calcite-core:$calcite_version"
-    compile "org.apache.calcite:calcite-server:$calcite_version"
+    compile files('../calcite/server/target/calcite-server-1.18.0-SNAPSHOT.jar')
     compile group: 'org.apache.hbase', name: 'hbase-client', version: "$hbaseclient_version"
+    // 支持库
     compile "io.github.microutils:kotlin-logging:$kotlinlogging_version"
     compile "org.cfg4j:cfg4j-core:$cfg4j_version"
+    // 测试库
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testCompile "junit:junit:4.12"
 }

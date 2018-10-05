@@ -3,5 +3,5 @@
 ## key feature
 
 - jvm ecology
-- support multi index
+- support flexible index
 - based on mature components
