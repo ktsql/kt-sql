@@ -136,12 +136,36 @@ abstract class CalciteConnectionImpl
     implements CalciteConnection, QueryProvider
 CalciteConnectionImpl最终实现了AvaticaConnection(jdbc), CalciteConnection(calciteI), QueryProvider(linq4j)
 
+Calcite首先会实现自己的逻辑，像Calcite-AvaticaFactory, CalciteFactory都是沿于自己的逻辑体系。
+然后，通过实现jdbc的接口，实现了逻辑和jdbc接口的融合。
+
 calcite在作为lib内嵌到其他程序中时，注册了jdbc driver(有remote和local两种模式），
 当访问jdbc connection时，会访问org.apache.calcite.avatica.UnregisteredDriver的connect(url, info)函数，
-(通过DriverManager.getConnection()访问org.apache.calcite.jdbc.Driver，Driver是UnregisteredDriver子类)
+(通过DriverManager.getConnection()访问org.apache.calcite.jdbc.Driver，Driver是UnregisteredDriver子类)。
+connect(url,info)会调用this.factory.newConnection(UnregisteredDriver var1, AvaticaFactory var2, String var3, Properties var4)。
+CalciteFactory.newConnection是abstract，如果要改变返回的Connection(包含Driver)，则需要重载该函数
 
 CalciteConnectionImpl创建时，会生成CalciteSchema，CalciteSchema创建MetadataSchema，因为Schema是一个可传进去的参数，
 所以存在在调用connect函数时，把自定义的Schema传进去的可能，只需重写自己的Driver即可
 
 calcite对jdbc的处理提供了几种扩展机制，如子类继承、设置handler对connection、statement进行处理，
 具备了一定情况下无需入侵源代码即可实现自定义逻辑的可能
+
+### calcite-jdbc
+
+因为对jdbc的扩展，是实现calcite定制的关键，所以这里梳理一下calcite-jdbc的类关系
+
+依据jdbc driver的规范，需要实现以下元素：
+1. driver，用于把代码注册到Jdbc Driver中
+2. connection，当Driver调用connect()时，返回
+2. statement，通过connection创建
+
+calcite的实现代码逻辑如下：
+1. Driver，用于注册driver，包含CalciteFactory，当调用Driver的connect时，实际调用CalciteFactory的newConnection
+2. CalciteFactory负责创建connection，因为CalciteFactory是抽象类，实际调用的是CalciteJdbc41Factory.newConnection，即创建CalciteJdbc41Connection
+3. CalciteConnectionImpl是CalciteJdbc41Connection的抽象父类，因为CalciteJdbc41Connection什么都没有做，其实创建的connection就是CalciteConnectionImpl
+4. CalciteConnection包含了上下文Driver, CalciteFactory, CalciteSchema, JavaTypeFactory，这些都是由Factory传过去的
+5. Driver继承于UnregisteredDriver，使用了UnregisteredDriver.createFactory，createFactory创建的Factory类为AvaticaJdbc41Factory
+6. 传给CalciteConnection的上下文中，Driver为UnregisteredDriver，Factory为AvaticaJdbc41Factory，CalciteSchema和JavaTypeFactory都是null
+7. CalciteConnectionImpl在初始化的时候，如果发现CalciteSchema为null，通过CalciteSchema.createRootSchema初始化Schema
+8. CalciteConnectionImpl在初始化的时候，如果发现JavaTypeFactory为null，通过创建RelDataTypeSystem.class初始化JavaTypeFactory
