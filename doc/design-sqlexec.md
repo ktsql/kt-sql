@@ -90,31 +90,6 @@ RelNode的结构组织也是嵌套语法树，完成优化后，由interpreter�
 解释执行的入口为execute调用，如execute(), executeQuery(), executeDdl()。
 执行的运行空间为单核单线程，具有巨大的性能提升空间。
 
-### Meta
-
-在calcite中引入了几个概念：
-1. schema 用于表述初始化所需的信息，如库名，因其实现的原因，只能只读
-2. meta 用于表达保存的数据的元信息，针对每一实现，官方建议都实现自己的meta
-3. metadata 用于sql解析的元数据信息
-
-CalciteSchema根据配置文件生成，保存在单个JVM的内存中，在一个分布式的环境，
-Calcite的设计决定了CalciteSchema统一保存、只读访问的属性
-
-因为calcite实现的原因，如果要保存表结构、表索引等信息，应当采用Meta。
-如果需要对Meta的信息进行控制，需要实现自己的Meta，如在分布式环境可用的Meta。
-calcite-core实现了CalciteMetaImpl，并把CalciteMetaImpl作为组件，放到了MetadataSchema中。
-MetadataSchema是schema的子类，在rootSchema创建时被初始化并添加到rootSchema中，
-rootSchema在创建时，会被传到SchemaFactory中，通过该方式，可以借助Schema获取meta的信息。
-
-CalciteMetaImpl独立创建了一个连接，用于访问Meta信息，可以通过继承CalciteMetaImpl创建新的Meta实现类。
-
-jdbc规范中，包含两个metadata的定义：1、resultset的metadata；2、connection获取的metadata。
-分别对应calcite-metadata和calcite-meta
-
-因为要支持index和事务的原因，需要接管calcite的meta实现，方法为：
-通过继承改写org.apache.calcite.jdbc.Driver，实现原有逻辑的子类，传一个新的Schema进去
-需重新实现CalciteSchema，对MetadataSchema进行改写，实现新的MetaImpl逻辑
-
 ### calcite-core
 
 calcite-core依赖以下模块：
@@ -160,7 +135,7 @@ calcite对jdbc的处理提供了几种扩展机制，如子类继承、设置han
 2. connection，当Driver调用connect()时，返回
 2. statement，通过connection创建
 
-calcite的实现代码逻辑如下：
+calcite-jdbc的初始化实现代码逻辑如下：
 1. Driver，用于注册driver，包含CalciteFactory，当调用Driver的connect时，实际调用CalciteFactory的newConnection
 2. CalciteFactory负责创建connection，因为CalciteFactory是抽象类，实际调用的是CalciteJdbc41Factory.newConnection，即创建CalciteJdbc41Connection
 3. CalciteConnectionImpl是CalciteJdbc41Connection的抽象父类，因为CalciteJdbc41Connection什么都没有做，其实创建的connection就是CalciteConnectionImpl
@@ -169,3 +144,45 @@ calcite的实现代码逻辑如下：
 6. 传给CalciteConnection的上下文中，Driver为UnregisteredDriver，Factory为AvaticaJdbc41Factory，CalciteSchema和JavaTypeFactory都是null
 7. CalciteConnectionImpl在初始化的时候，如果发现CalciteSchema为null，通过CalciteSchema.createRootSchema初始化Schema
 8. CalciteConnectionImpl在初始化的时候，如果发现JavaTypeFactory为null，通过创建RelDataTypeSystem.class初始化JavaTypeFactory
+
+calcite-jdbc的表读写实现代码逻辑需要adaptor的支持，table需要实现Table、ModifiableTable对读写操作进行支持
+
+calcite-jdbc的表创建实现代码逻辑如下：
+1. 在Schema中添加表的Meta信息
+2. 在SqlDdlNodes.populate创建表
+   1. 首先创建 PreparedStatement： prepare = context.getRelRunner().prepare(r.rel)
+   2. 然后通过prepare.executeUpdate() 执行添加表操作, context(DataContext)由调用者触发，使用调用者的上下文
+   3. AvaticaPreparedStatement提供executeUpdate()的实现，实际调用的是this.getConnection().executeQueryInternal
+   4. AvaticaConnection提供了executeQueryInternal()的实现，实际调用的是Meta.execute
+   5. Meta是interface，最终执行的是CalciteMetaImpl
+
+### Meta
+
+在calcite中引入了几个概念：
+1. schema 用于表述初始化所需的信息，如库名，因其实现的原因，只能只读
+2. meta 用于表达保存的数据的元信息，针对每一实现，官方建议都实现自己的meta
+3. metadata 用于sql解析的元数据信息
+
+CalciteSchema根据配置文件生成，保存在单个JVM的内存中，在一个分布式的环境，
+Calcite的设计决定了CalciteSchema统一保存、只读访问的属性
+
+因为calcite实现的设计，如果要保存表结构、表索引等信息，应当采用Meta。
+如果需要对Meta的信息进行控制，需要实现自己的Meta，如在分布式环境可用的Meta，可以通过继承的方式创建新的Meta实现类。
+calcite-core实现了CalciteMetaImpl，并把CalciteMetaImpl作为组件，放到了MetadataSchema中。
+MetadataSchema是schema的子类，在rootSchema创建时被初始化并添加到rootSchema中，
+rootSchema在创建后，会被传到SchemaFactory中，通过该方式，可以借助Schema获取meta的信息。
+
+CalciteMetaImpl独立创建了一个连接，用于访问Meta信息。Meta在设计的时候，考虑的是自己管理连接、逻辑、存储，
+不会与数据库的请求连接捆绑在一起。这种非捆绑的设计，有助于Meta逻辑的独立。
+
+jdbc规范中，包含两个metadata的定义：1、resultset的metadata；2、connection获取的metadata。
+分别对应calcite-metadata和calcite-meta
+
+因为要支持index和事务的原因，需要接管calcite的meta实现，方法为：
+通过继承改写org.apache.calcite.jdbc.Driver，实现原有逻辑的子类，传一个新的Schema进去，
+需要改写的类包括Driver(connect、createFactory)、AvaticaFactory(newConnection)、以及SqlSchema相关
+需重新实现CalciteSchema，对MetadataSchema进行改写，实现新的MetaImpl逻辑
+
+calcite-server CreateTable包含两个环节：1、在Schema中添加对应的KeyValue；2、执行SQL创建表
+calcite-server中，CreateTable是通过在Schema中的TableMap添加一个KeyValue实现的，
+这意味着沿用calcite-server，需要对相关的Meta处理进行完善。
