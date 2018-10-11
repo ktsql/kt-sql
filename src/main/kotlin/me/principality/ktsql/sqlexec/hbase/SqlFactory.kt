@@ -5,9 +5,10 @@ import java.sql.ResultSetMetaData
 import java.util.*
 
 /**
- * 继承CalciteFactory，沿用现有实现，同时改写newConnection，把定制的Schema传进去
+ * SqlDriver会在jdbc调用时，完成SqlFactory的初始化，并保存在protected final AvaticaFactory factory变量中
+ * SqlFactory继承AvaticaFactory，沿用现有实现，同时改写newConnection，把定制的Schema传进去
  */
-class SqlFactory() : AvaticaFactory {
+class SqlFactory : AvaticaFactory {
     protected val major: Int = 0
     protected val minor: Int = 1
 
@@ -29,19 +30,33 @@ class SqlFactory() : AvaticaFactory {
         TODO() // 参考CalciteJdbc41Factory完成实现
     }
 
-    override fun newStatement(connection: AvaticaConnection?, h: Meta.StatementHandle?, resultSetType: Int, resultSetConcurrency: Int, resultSetHoldability: Int): AvaticaStatement {
+    override fun newStatement(connection: AvaticaConnection?,
+                              h: Meta.StatementHandle?,
+                              resultSetType: Int,
+                              resultSetConcurrency: Int,
+                              resultSetHoldability: Int): AvaticaStatement {
         TODO("not implemented")
     }
 
-    override fun newResultSetMetaData(statement: AvaticaStatement?, signature: Meta.Signature?): ResultSetMetaData {
+    override fun newResultSetMetaData(statement: AvaticaStatement?,
+                                      signature: Meta.Signature?): ResultSetMetaData {
         TODO("not implemented")
     }
 
-    override fun newPreparedStatement(connection: AvaticaConnection?, h: Meta.StatementHandle?, signature: Meta.Signature?, resultSetType: Int, resultSetConcurrency: Int, resultSetHoldability: Int): AvaticaPreparedStatement {
+    override fun newPreparedStatement(connection: AvaticaConnection?,
+                                      h: Meta.StatementHandle?,
+                                      signature: Meta.Signature?,
+                                      resultSetType: Int,
+                                      resultSetConcurrency: Int,
+                                      resultSetHoldability: Int): AvaticaPreparedStatement {
         TODO("not implemented")
     }
 
-    override fun newResultSet(statement: AvaticaStatement?, state: QueryState?, signature: Meta.Signature?, timeZone: TimeZone?, firstFrame: Meta.Frame?): AvaticaResultSet {
+    override fun newResultSet(statement: AvaticaStatement?,
+                              state: QueryState?,
+                              signature: Meta.Signature?,
+                              timeZone: TimeZone?,
+                              firstFrame: Meta.Frame?): AvaticaResultSet {
         TODO("not implemented")
     }
 

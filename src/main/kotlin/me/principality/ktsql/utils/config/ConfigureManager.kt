@@ -15,7 +15,7 @@ object ConfigureManager {
                         + "     {\n"
                         + "       type: 'custom',\n"
                         + "       name: 'hbase',\n"
-                        + "       factory: 'me.principality.backend.hbase.HBaseSchemaFactory',\n"
+                        + "       factory: 'me.principality.ktsql.backend.hbase.HBaseSchemaFactory',\n"
                         + "       operand: {\n"
                         + "         flavor: 'SCANNABLE',\n"
                         + "         zkquorum: '127.0.0.1:2222'\n"

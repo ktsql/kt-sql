@@ -79,6 +79,19 @@ http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
 如在一个万兆的网络环境，每秒读入约1G的数据（压缩后且为投影数据），
 这意味着需要在秒级处理上亿行的数据，计算单元必须要具备对应的计算能力
 
+SQL的操作可以拆分为以下几个步骤
+1. Scan (FROM).
+2. Join: Join two results as cross-product (JOIN).
+3. LeftJoin: The algebraic rules for an outer join are so different from a Join that this needs to be a separate operator (LEFT JOIN).
+4. Filter: Removing rows based on a conditional expression (WHERE, HAVING).
+5. Select(Project): Evaluating new values based on a value expression list (SELECT list).
+6. Aggregate: Grouping rows based on an aggregate expression list (GROUP BY, UNION).
+7. Sort (ORDER BY).
+8. Limit (LIMIT).
+9. Merge: Merge two results into one (UNION ALL).
+
+Calcite已经支持把Filter、Project分布式下推到存储节点上
+
 ## Calcite代码笔记
 
 ### SqlNode & RelNode
@@ -126,6 +139,17 @@ CalciteConnectionImpl创建时，会生成CalciteSchema，CalciteSchema创建Met
 calcite对jdbc的处理提供了几种扩展机制，如子类继承、设置handler对connection、statement进行处理，
 具备了一定情况下无需入侵源代码即可实现自定义逻辑的可能
 
+CalciteConnection创建时，会完成相关元素的创建，参考调用链：AvaticaConnection<-CalciteConnectionImpl<-CalciteJdbc41Connection
+最终在AvaticaConnection完成了相关元素的初始化：
+    this.id = UUID.randomUUID().toString();
+    this.handle = new Meta.ConnectionHandle(this.id);
+    this.driver = driver; // 由上层传入
+    this.factory = factory; // 由上层传入
+    this.url = url; // 调用参数
+    this.info = info; // 调用参数
+    this.meta = driver.createMeta(this);
+    this.metaData = factory.newDatabaseMetaData(this);
+
 ### calcite-jdbc
 
 因为对jdbc的扩展，是实现calcite定制的关键，所以这里梳理一下calcite-jdbc的类关系
@@ -140,15 +164,17 @@ calcite-jdbc的初始化实现代码逻辑如下：
 2. CalciteFactory负责创建connection，因为CalciteFactory是抽象类，实际调用的是CalciteJdbc41Factory.newConnection，即创建CalciteJdbc41Connection
 3. CalciteConnectionImpl是CalciteJdbc41Connection的抽象父类，因为CalciteJdbc41Connection什么都没有做，其实创建的connection就是CalciteConnectionImpl
 4. CalciteConnection包含了上下文Driver, CalciteFactory, CalciteSchema, JavaTypeFactory，这些都是由Factory传过去的
-5. Driver继承于UnregisteredDriver，使用了UnregisteredDriver.createFactory，createFactory创建的Factory类为AvaticaJdbc41Factory
-6. 传给CalciteConnection的上下文中，Driver为UnregisteredDriver，Factory为AvaticaJdbc41Factory，CalciteSchema和JavaTypeFactory都是null
+5. Driver继承于UnregisteredDriver，使用了UnregisteredDriver.createFactory，createFactory创建的Factory类为CalciteJdbc41Factory，Driver改写了getFactoryClassName
+6. 传给CalciteConnection的上下文中，Driver为UnregisteredDriver，Factory为CalciteJdbc41Factory，CalciteSchema和JavaTypeFactory都是null
 7. CalciteConnectionImpl在初始化的时候，如果发现CalciteSchema为null，通过CalciteSchema.createRootSchema初始化Schema
-8. CalciteConnectionImpl在初始化的时候，如果发现JavaTypeFactory为null，通过创建RelDataTypeSystem.class初始化JavaTypeFactory
+8. CalciteSchema.createRootSchema根据上下文，按需创建CachingCalciteSchema或SimpleCalciteSchema，并把MetadataSchema作为子Schema添加到rootSchema
+9. CalciteConnectionImpl在初始化的时候，如果发现JavaTypeFactory为null，通过创建RelDataTypeSystem.class初始化JavaTypeFactory
 
 calcite-jdbc的表读写实现代码逻辑需要adaptor的支持，table需要实现Table、ModifiableTable对读写操作进行支持
 
-calcite-jdbc的表创建实现代码逻辑如下：
+calcite-jdbc的表创建实现代码逻辑如下(查看SqlCreateTable.execute)：
 1. 在Schema中添加表的Meta信息
+   1. CalciteSchema.add(new MutableArrayTable(...))
 2. 在SqlDdlNodes.populate创建表
    1. 首先创建 PreparedStatement： prepare = context.getRelRunner().prepare(r.rel)
    2. 然后通过prepare.executeUpdate() 执行添加表操作, context(DataContext)由调用者触发，使用调用者的上下文
@@ -169,7 +195,7 @@ Calcite的设计决定了CalciteSchema统一保存、只读访问的属性
 因为calcite实现的设计，如果要保存表结构、表索引等信息，应当采用Meta。
 如果需要对Meta的信息进行控制，需要实现自己的Meta，如在分布式环境可用的Meta，可以通过继承的方式创建新的Meta实现类。
 calcite-core实现了CalciteMetaImpl，并把CalciteMetaImpl作为组件，放到了MetadataSchema中。
-MetadataSchema是schema的子类，在rootSchema创建时被初始化并添加到rootSchema中，
+MetadataSchema是schema的子类，在rootSchema创建时被初始化并作为subSchema添加到rootSchema中，
 rootSchema在创建后，会被传到SchemaFactory中，通过该方式，可以借助Schema获取meta的信息。
 
 CalciteMetaImpl独立创建了一个连接，用于访问Meta信息。Meta在设计的时候，考虑的是自己管理连接、逻辑、存储，
@@ -186,3 +212,11 @@ jdbc规范中，包含两个metadata的定义：1、resultset的metadata；2、c
 calcite-server CreateTable包含两个环节：1、在Schema中添加对应的KeyValue；2、执行SQL创建表
 calcite-server中，CreateTable是通过在Schema中的TableMap添加一个KeyValue实现的，
 这意味着沿用calcite-server，需要对相关的Meta处理进行完善。
+
+Calcite实现了自己的DatabaseMetadata：AvaticaJdbc41DatabaseMetaData，继承自AvaticaDatabaseMetaData，
+AvaticaJdbc41DatabaseMetaData由CalciteJdbc41Factory(继承CalciteFactory)创建。
+
+Calcite的ResultSetMeta实现，可以参考AvaticaResultSetMetaData
+
+依Calcite的设计思路，所有装配的工作，都在CalciteFactory完成，且调用CalciteFactory的使用者和CalciteFactory捆绑，
+如果要改写，不但需要改写CalciteFactory，还需要修改CalciteFactory相关的使用者

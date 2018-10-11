@@ -1,6 +1,7 @@
 package me.principality.ktsql.sqlexec.hbase
 
 import org.apache.calcite.avatica.ConnectStringParser
+import org.apache.calcite.avatica.UnregisteredDriver
 import org.apache.calcite.jdbc.Driver
 import java.sql.Connection
 import java.sql.SQLException
@@ -12,12 +13,9 @@ import java.util.*
 class SqlDriver : Driver {
     val CONNECT_STRING_PREFIX = "jdbc:ktsql:"
 
-    private val sqlFactory: SqlFactory
-
     constructor() {
         Driver()
         // 下面开始做一些自己的初始化工作
-        sqlFactory = SqlFactory()
     }
 
     /**
@@ -25,6 +23,18 @@ class SqlDriver : Driver {
      */
     override fun getConnectStringPrefix(): String {
         return CONNECT_STRING_PREFIX
+    }
+
+    override fun getFactoryClassName(jdbcVersion: UnregisteredDriver.JdbcVersion): String {
+        when (jdbcVersion) {
+            UnregisteredDriver.JdbcVersion.JDBC_30,
+            UnregisteredDriver.JdbcVersion.JDBC_40 ->
+                throw IllegalArgumentException("JDBC version not supported: $jdbcVersion")
+            UnregisteredDriver.JdbcVersion.JDBC_41 ->
+                return "me.principality.ktsql.sqlexec.hbase.SqlFactory"
+            else ->
+                return "me.principality.ktsql.sqlexec.hbase.SqlFactory"
+        }
     }
 
     /**
@@ -41,7 +51,7 @@ class SqlDriver : Driver {
 
             val urlSuffix = url.substring(prefix.length)
             val info2 = ConnectStringParser.parse(urlSuffix, info)
-            val connection = this.sqlFactory.newConnection(this, this.sqlFactory, url, info2)
+            val connection = this.factory.newConnection(this, this.factory, url, info2)
             this.handler.onConnectionInit(connection)
             return connection
         }

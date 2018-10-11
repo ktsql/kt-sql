@@ -26,6 +26,21 @@ import java.lang.reflect.Type
  */
 abstract class HBaseModifiableTable(name: String, descriptor: HTableDescriptor) :
         HBaseTable(name, descriptor), ModifiableTable {
+    override fun getModifiableCollection(): MutableCollection<Any?> {
+        TODO("not implemented")
+    }
+
+    override fun getElementType(): Type {
+        TODO("not implemented")
+    }
+
+    override fun <T : Any?> asQueryable(queryProvider: QueryProvider?, schema: SchemaPlus?, tableName: String?): Queryable<T> {
+        TODO("not implemented")
+    }
+
+    override fun getExpression(schema: SchemaPlus?, tableName: String?, clazz: Class<*>?): Expression {
+        TODO("not implemented")
+    }
 
     override fun toModificationRel(cluster: RelOptCluster?,
                                    table: RelOptTable?,

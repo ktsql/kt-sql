@@ -23,7 +23,7 @@ object HBaseConnection {
 
     fun init(operand: MutableMap<String, Any>?) {
         val config = HBaseConfiguration.create()
-        val zkquorum: String = operand?.get("zkclient").toString()
+        val zkquorum: String = operand?.get("zkquorum").toString()
         config.set(HConstants.ZOOKEEPER_QUORUM, zkquorum)
 
         isInit = true
