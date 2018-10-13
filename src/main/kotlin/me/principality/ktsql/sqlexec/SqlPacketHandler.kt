@@ -2,7 +2,7 @@ package me.principality.ktsql.sqlexec
 
 import me.principality.ktsql.protocol.mysql.helper.PacketHandleHelper
 import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
-import me.principality.ktsql.utils.config.ConfigureManager
+import me.principality.ktsql.utils.config.ConfigureProvider
 import java.sql.DriverManager
 import java.util.*
 
@@ -14,17 +14,39 @@ import java.util.*
  */
 class SqlPacketHandler : PacketHandleHelper {
     private val connectionString = "jdbc:calcite:parserFactory=org.apache.calcite.sql.parser.ddl.SqlDdlParserImpl#FACTORY"
+    private val info = ConfigureProvider.getCalciteConfig()
+    private val connection = DriverManager.getConnection(connectionString, info)
 
-    override fun execute(sql: String): Optional<CommandResponsePackets> {
-        val info = ConfigureManager.getCalciteConfig()
-        val connection = DriverManager.getConnection(connectionString, info)
-
+    override fun executeQuery(sql: String): Optional<CommandResponsePackets> {
         val statement = connection.createStatement()
         val sets = statement.executeQuery(sql)
         val ret = SqlUtil.toResponse(sets)
         sets.close()
 
+        statement.close()
         connection.close()
         return ret
+    }
+
+    override fun executeDdl(sql: String): Optional<CommandResponsePackets> {
+        val statement = connection.createStatement()
+        val sets = statement.executeUpdate(sql)
+
+        statement.close()
+        connection.close()
+        return Optional.empty()
+    }
+
+    override fun execute(sql: String): Optional<CommandResponsePackets> {
+        val statement = connection.createStatement()
+        val sets = statement.execute(sql)
+        /*
+        val ret = SqlUtil.toResponse(sets)
+        sets.close()
+        */
+
+        statement.close()
+        connection.close()
+        return Optional.empty()
     }
 }

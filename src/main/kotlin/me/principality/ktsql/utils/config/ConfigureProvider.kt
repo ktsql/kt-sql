@@ -1,12 +1,22 @@
 package me.principality.ktsql.utils.config
 
+import com.typesafe.config.ConfigFactory
 import java.util.*
 
-// TODO rename? put data to zookeeper?
-object ConfigureManager {
-    val info = Properties()
+// TODO put data to zookeeper?
+object ConfigureProvider {
+    private val info = Properties()
+    private val config = ConfigFactory.load()
+    private val loginAuth: LoginAuthority by lazy {
+        val user = config.getString("user")
+        val pass = config.getString("pass")
+        LoginAuthority(user, pass)
+    }
 
     init {
+        val zkquorum = config.getString("zkquorum")
+        val flavor = config.getString("flavor")
+
         info.put("model",
                 ("inline:"
                         + "{\n"
@@ -17,8 +27,8 @@ object ConfigureManager {
                         + "       name: 'hbase',\n"
                         + "       factory: 'me.principality.ktsql.backend.hbase.HBaseSchemaFactory',\n"
                         + "       operand: {\n"
-                        + "         flavor: 'SCANNABLE',\n"
-                        + "         zkquorum: '127.0.0.1:2222'\n"
+                        + "         flavor: '" + flavor + "',\n"
+                        + "         zkquorum: '" + zkquorum + "'\n"
                         + "       }\n"
                         + "     }\n"
                         + "   ]\n"
@@ -26,7 +36,7 @@ object ConfigureManager {
     }
 
     fun getLoginAuthority(): LoginAuthority {
-        return LoginAuthority("user", "pass") //TODO add authority implement
+        return loginAuth
     }
 
     fun getCalciteConfig(): Properties {

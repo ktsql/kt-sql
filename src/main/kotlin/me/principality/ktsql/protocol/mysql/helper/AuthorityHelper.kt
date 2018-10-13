@@ -1,7 +1,7 @@
 package me.principality.ktsql.protocol.mysql.helper
 
 import com.google.common.base.Strings
-import me.principality.ktsql.utils.config.ConfigureManager
+import me.principality.ktsql.utils.config.ConfigureProvider
 import org.apache.commons.codec.digest.DigestUtils
 import java.util.*
 import kotlin.experimental.xor
@@ -10,7 +10,7 @@ class AuthorityHelper {
     val authPluginData: AuthPluginData = AuthPluginData()
 
     fun login(username: String, authResponse: ByteArray): Boolean {
-        val proxyAuthority = ConfigureManager.getLoginAuthority()
+        val proxyAuthority = ConfigureProvider.getLoginAuthority()
         return if (Strings.isNullOrEmpty(proxyAuthority.password)) {
             proxyAuthority.username.equals(username)
         } else {

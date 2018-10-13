@@ -215,8 +215,18 @@ calcite-server中，CreateTable是通过在Schema中的TableMap添加一个KeyVa
 
 Calcite实现了自己的DatabaseMetadata：AvaticaJdbc41DatabaseMetaData，继承自AvaticaDatabaseMetaData，
 AvaticaJdbc41DatabaseMetaData由CalciteJdbc41Factory(继承CalciteFactory)创建。
+Calcite DatabaseMetaData通过connection的类成员meta获取对应的metadata信息
 
 Calcite的ResultSetMeta实现，可以参考AvaticaResultSetMetaData
 
 依Calcite的设计思路，所有装配的工作，都在CalciteFactory完成，且调用CalciteFactory的使用者和CalciteFactory捆绑，
 如果要改写，不但需要改写CalciteFactory，还需要修改CalciteFactory相关的使用者
+
+获取table的meta时，调用CalciteMetaImpl.schemas()，获得表的相关信息：
+- 获取所有的表，通过schema获取 getConnection().rootSchema.getSubSchemaMap()
+- 传进去的参数为catalog，通过catalog参数筛选出目标tables
+
+依据DatabaseMetaData的代码，只需要改写SqlSchema即可支持table/index meta
+如果要运行DDL(创建表)，会进入到CalciteMetaImpl.prepareAndExecute中，再进入到CalcitePrepareImpl.prepare2_，
+if (sqlNode.getKind().belongsTo(SqlKind.DDL)) 会调用SqlNode(SqlExecutableStatement).execute(),
+最后是通过Schema.add把表添加到Schema中，可通过接管Schema实现自定义的

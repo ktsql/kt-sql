@@ -21,7 +21,7 @@ class ComQueryPacket: CommandPacket {
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
         TODO("not implemented")
 
-        return helper.execute(sql)
+        return helper.executeQuery(sql)
     }
 
     override fun getSequenceId(): Int {
