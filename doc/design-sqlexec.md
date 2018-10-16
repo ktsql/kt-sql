@@ -90,18 +90,9 @@ SQL的操作可以拆分为以下几个步骤
 8. Limit (LIMIT).
 9. Merge: Merge two results into one (UNION ALL).
 
-Calcite已经支持把Filter、Project分布式下推到存储节点上
+Calcite已经支持把Filter、Project分布式下推到存储节点上，但执行的运行空间为单核单线程，性能有待提升。
 
 ## Calcite代码笔记
-
-### SqlNode & RelNode
-
-SqlNode的生成采用JavaCC BNF解析的方式生成，以嵌套语法树的方式组织。
-Calcite提供了SqlToRelConverter把SqlNode转换成RelNode，以便执行计划优化器对语法树进行优化，
-RelNode的结构组织也是嵌套语法树，完成优化后，由interpreter解释执行。
-
-解释执行的入口为execute调用，如execute(), executeQuery(), executeDdl()。
-执行的运行空间为单核单线程，具有巨大的性能提升空间。
 
 ### calcite-core
 
@@ -230,3 +221,23 @@ Calcite的ResultSetMeta实现，可以参考AvaticaResultSetMetaData
 如果要运行DDL(创建表)，会进入到CalciteMetaImpl.prepareAndExecute中，再进入到CalcitePrepareImpl.prepare2_，
 if (sqlNode.getKind().belongsTo(SqlKind.DDL)) 会调用SqlNode(SqlExecutableStatement).execute(),
 最后是通过Schema.add把表添加到Schema中，可通过接管Schema实现自定义的
+
+### SQL执行
+
+执行的入口为CalcitePrepareImpl的prepare，调用链：
+statement.prepareAndExecute()->connection.prepareAndExecute()->meta.prepareAndExecute()
+->connection.parseQuery()->prepareImpl.prepareSql()->prepareImpl.prepare2_()
+
+入口为prepare2_()，对各类的SQL处理如下：
+1. DDL处理，进入到executeDdl()
+2. DML执行，进入到prepareSql()，先解析为PrepareStatement，然后再调用
+
+SQL解析执行的过程为 <= 参考：Prepare.prepareSql()：
+1. 解析SQL，转换成SqlNode
+2. 对SqlNode进行检查（采取自顶向下的递归方式），确认每一节点的语法有效性（是否和Meta信息一致）
+3. 把SqlNode转换成为RelNode，然后对RelNode进行结构优化
+4. 调用最终的执行函数，如Prepare.implement()
+
+SqlNode的生成采用JavaCC BNF解析的方式生成，以嵌套语法树的方式组织。
+Calcite提供了SqlToRelConverter把SqlNode转换成RelNode，以便执行计划优化器对语法树进行优化，
+RelNode的结构组织也是嵌套语法树，完成优化后，由interpreter模块解释执行。解释执行的入口为execute调用。

@@ -24,7 +24,6 @@ class SqlPacketHandler : PacketHandleHelper {
         sets.close()
 
         statement.close()
-        connection.close()
         return ret
     }
 
@@ -33,7 +32,6 @@ class SqlPacketHandler : PacketHandleHelper {
         val sets = statement.executeUpdate(sql)
 
         statement.close()
-        connection.close()
         return Optional.empty()
     }
 
@@ -46,7 +44,12 @@ class SqlPacketHandler : PacketHandleHelper {
         */
 
         statement.close()
-        connection.close()
         return Optional.empty()
+    }
+
+    override fun close() {
+        if (!connection.isClosed) {
+            connection.close()
+        }
     }
 }

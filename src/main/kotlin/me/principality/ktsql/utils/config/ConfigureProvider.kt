@@ -14,8 +14,8 @@ object ConfigureProvider {
     }
 
     init {
-        val zkquorum = config.getString("zkquorum")
         val flavor = config.getString("flavor")
+        val zkquorum = config.getString("zkquorum")
 
         info.put("model",
                 ("inline:"
@@ -27,8 +27,8 @@ object ConfigureProvider {
                         + "       name: 'hbase',\n"
                         + "       factory: 'me.principality.ktsql.backend.hbase.HBaseSchemaFactory',\n"
                         + "       operand: {\n"
-                        + "         flavor: '" + flavor + "',\n"
-                        + "         zkquorum: '" + zkquorum + "'\n"
+                        + "         flavor: '${flavor}',\n"
+                        + "         zkquorum: '${zkquorum}'\n"
                         + "       }\n"
                         + "     }\n"
                         + "   ]\n"

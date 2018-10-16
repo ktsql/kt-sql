@@ -6,6 +6,6 @@ import java.util.*
 
 object SqlUtil {
     fun toResponse(resultSet: ResultSet): Optional<CommandResponsePackets> {
-        TODO("not implemented")
+        return Optional.empty()
     }
 }

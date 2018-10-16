@@ -14,6 +14,8 @@ import org.apache.calcite.util.NameSet
 
 /**
  * 重写Schema，实现自定义Schema的支持
+ * 需要了解SchemaFactory创建出来的Schema，是否已经覆盖了SqlSchema的范围，
+ * 如果已经覆盖，可以把Schema需要支持的操作，都放到HBaseSchema中
  */
 class SqlSchema : CalciteSchema {
     constructor(parent: CalciteSchema,

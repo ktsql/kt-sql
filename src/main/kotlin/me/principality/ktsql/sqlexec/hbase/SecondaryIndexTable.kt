@@ -1,7 +1,6 @@
 package me.principality.ktsql.sqlexec.hbase
 
 import com.google.common.base.Throwables
-import com.google.common.io.Closeables
 import org.apache.hadoop.hbase.CellUtil
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.*
@@ -12,10 +11,10 @@ import org.apache.tephra.distributed.TransactionServiceClient
 import org.apache.tephra.hbase.TransactionAwareHTable
 import java.io.Closeable
 import java.io.IOException
-import java.util.ArrayList
+import java.util.*
 
 /**
- * 二次索引实现，待依据设计进一步改进
+ * 二次索引实现，基于tephra保证索引和数据变更的强一致性，待依据设计进一步改进
  */
 class SecondaryIndexTable : Closeable {
     private val transactionAwareHTable: TransactionAwareHTable
@@ -26,8 +25,12 @@ class SecondaryIndexTable : Closeable {
     private val secondaryIndex: ByteArray
 
     @Throws(IOException::class)
-    constructor(transactionServiceClient: TransactionServiceClient, table: Table, secondaryIndex: ByteArray) {
-        secondaryIndexTableName = TableName.valueOf(table.name.nameAsString + ".idx")
+    constructor(transactionServiceClient: TransactionServiceClient,
+                table: Table,
+                secondaryIndex: ByteArray,
+                indexName: String,
+                indexType: String = "idx") {
+        secondaryIndexTableName = TableName.valueOf(table.name.nameAsString + "." + indexName + "." + indexType)
         this.connection = ConnectionFactory.createConnection(table.configuration)
         this.secondaryIndex = secondaryIndex
         var secondaryIndexHTable: Table? = null
@@ -67,7 +70,6 @@ class SecondaryIndexTable : Closeable {
             } catch (e1: TransactionFailureException) {
                 throw IOException("Could not rollback transaction", e1)
             }
-
         }
 
         return null
@@ -96,7 +98,6 @@ class SecondaryIndexTable : Closeable {
             } catch (e1: TransactionFailureException) {
                 throw IOException("Could not rollback transaction", e1)
             }
-
         }
 
         return null
