@@ -29,7 +29,6 @@ object HBaseConnection {
         isInit = true
         connection = ConnectionFactory.createConnection(config)
         val flavorName = operand?.get("flavor").toString()
-        val flavor: HBaseTable.Flavor
         if (flavorName == null) {
             flavor = HBaseTable.Flavor.SCANNABLE
         } else {

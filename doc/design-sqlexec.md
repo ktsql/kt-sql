@@ -241,3 +241,41 @@ SQL解析执行的过程为 <= 参考：Prepare.prepareSql()：
 SqlNode的生成采用JavaCC BNF解析的方式生成，以嵌套语法树的方式组织。
 Calcite提供了SqlToRelConverter把SqlNode转换成RelNode，以便执行计划优化器对语法树进行优化，
 RelNode的结构组织也是嵌套语法树，完成优化后，由interpreter模块解释执行。解释执行的入口为execute调用。
+
+#### Prepare.implement()
+Prepare.implement()把需要执行的RelNode操作，转换成Java代码，然后通过compiler，
+把代码转换成可执行的binary code，参考IClassBodyEvaluator
+
+调用链：
+EnumerableInterpretable.toBindable()->EnumerableInterpretable.getBindable()->IClassBodyEvaluator.createInstance()
+
+比如，"insert into ${TEST_TABLE_NAME} values ('XXXX')"这样的SQL，经过RelNode的处理后，
+会转换成以下的字符串，并使用Janino编译器，编译成可以执行的binary code
+```java
+org.apache.calcite.DataContext root;
+
+public org.apache.calcite.linq4j.Enumerable bind(final org.apache.calcite.DataContext root0) {
+  root = root0;
+  final java.util.Collection collection = ((org.apache.calcite.schema.ModifiableTable) root.getRootSchema().getTable("T")).getModifiableCollection();
+  final int _count = collection.size();
+  org.apache.calcite.linq4j.Linq4j.asEnumerable(new String[] {
+    "XXXX"}).select(new org.apache.calcite.linq4j.function.Function1() {
+    public String apply(String o) {
+      return o;
+    }
+    public Object apply(Object o) {
+      return apply(
+        (String) o);
+    }
+  }
+  ).into(collection);
+  final int _updatedCount = collection.size();
+  return org.apache.calcite.linq4j.Linq4j.singletonEnumerable((long) (_updatedCount >= _count ? _updatedCount - _count : _count - _updatedCount));
+}
+
+
+public Class getElementType() {
+  return long.class;
+}
+```
+

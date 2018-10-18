@@ -14,8 +14,14 @@ import org.apache.calcite.util.NameSet
 
 /**
  * 重写Schema，实现自定义Schema的支持
- * 需要了解SchemaFactory创建出来的Schema，是否已经覆盖了SqlSchema的范围，
- * 如果已经覆盖，可以把Schema需要支持的操作，都放到HBaseSchema中
+ *
+ * 通过calcite代码跟踪确认，CalciteSchema没有实现添加表的持久化操作，
+ * 参考 TableEntry add(String tableName, Table table, ImmutableList<String> sqls)。
+ *
+ * 持久化的添加表、索引等操作，只能通过子类继承改写来实现
+ *
+ * 需要了解SchemaFactory创建出来的Schema，是否等价于SqlSchema？
+ * 如果等价，可以把Schema需要支持的操作，都放到HBaseSchema中
  */
 class SqlSchema : CalciteSchema {
     constructor(parent: CalciteSchema,

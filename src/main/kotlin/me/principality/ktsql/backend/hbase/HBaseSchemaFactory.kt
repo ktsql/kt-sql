@@ -26,7 +26,7 @@ class HBaseSchemaFactory : SchemaFactory {
     override fun create(parentSchema: SchemaPlus?,
                         name: String?,
                         operand: MutableMap<String, Any>?): Schema {
-        if (name != "hbase") {
+        if (name != "HBASE") {
             throw IllegalArgumentException("properties schemas name error")
         }
 

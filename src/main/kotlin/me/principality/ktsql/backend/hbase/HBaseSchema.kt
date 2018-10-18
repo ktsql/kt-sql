@@ -30,16 +30,18 @@ import org.apache.hadoop.hbase.client.Connection
 class HBaseSchema : AbstractSchema {
     private val logger = KotlinLogging.logger {}
     private val connection: Connection
-    private lateinit var tableMap: Map<String, Table>
+    private val tableMap: Map<String, Table>
 
     constructor(connection: Connection) {
         this.connection = connection
+        this.tableMap = createTableMap()
     }
 
+    /**
+     * 考虑如果支持create table/index等操作，这里的返回需要去meta获取数据
+     */
     override fun getTableMap(): Map<String, Table> {
-        if (tableMap == null) {
-            tableMap = createTableMap()
-        }
+        println("我的天呀，怎么可以这么炸") // fixme 测试专用
         return tableMap
     }
 
@@ -57,8 +59,8 @@ class HBaseSchema : AbstractSchema {
             val table = createTable(source, table)
             builder.put(source, table)
         }
-        tableMap = builder.build()
-        return tableMap
+        val map = builder.build()
+        return map
     }
 
     private fun createTable(name: String, descriptor: HTableDescriptor): Table {

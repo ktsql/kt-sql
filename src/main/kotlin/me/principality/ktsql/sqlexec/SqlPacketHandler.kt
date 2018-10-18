@@ -20,6 +20,9 @@ class SqlPacketHandler : PacketHandleHelper {
     override fun executeQuery(sql: String): Optional<CommandResponsePackets> {
         val statement = connection.createStatement()
         val sets = statement.executeQuery(sql)
+        while (sets.next()) {
+            println(sets.getString("rowkey")) // fixme 仅用于测试
+        }
         val ret = SqlUtil.toResponse(sets)
         sets.close()
 
