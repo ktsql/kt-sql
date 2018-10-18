@@ -17,11 +17,15 @@ import org.apache.calcite.util.NameSet
  *
  * 通过calcite代码跟踪确认，CalciteSchema没有实现添加表的持久化操作，
  * 参考 TableEntry add(String tableName, Table table, ImmutableList<String> sqls)。
+ * 所以需要修改calcite-server，支持从schema中创建表（目前只支持getTable）
+ *
+ * 这一修改需要变动：
+ * 1. 将calcite-server createTable()逻辑，修改为从adapter从创建
+ * 2. SqlSchema添加对adaptor-schema的支持
  *
  * 持久化的添加表、索引等操作，只能通过子类继承改写来实现
  *
- * 需要了解SchemaFactory创建出来的Schema，是否等价于SqlSchema？
- * 如果等价，可以把Schema需要支持的操作，都放到HBaseSchema中
+ * 需要了解SchemaFactory创建出来的Schema，是否等价于SqlSchema？<= 不等价
  */
 class SqlSchema : CalciteSchema {
     constructor(parent: CalciteSchema,

@@ -132,6 +132,7 @@ calcite对jdbc的处理提供了几种扩展机制，如子类继承、设置han
 
 CalciteConnection创建时，会完成相关元素的创建，参考调用链：AvaticaConnection<-CalciteConnectionImpl<-CalciteJdbc41Connection
 最终在AvaticaConnection完成了相关元素的初始化：
+```java
     this.id = UUID.randomUUID().toString();
     this.handle = new Meta.ConnectionHandle(this.id);
     this.driver = driver; // 由上层传入
@@ -140,6 +141,7 @@ CalciteConnection创建时，会完成相关元素的创建，参考调用链：
     this.info = info; // 调用参数
     this.meta = driver.createMeta(this);
     this.metaData = factory.newDatabaseMetaData(this);
+```
 
 ### calcite-jdbc
 

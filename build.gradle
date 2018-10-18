@@ -42,6 +42,7 @@ dependencies {
     compile "io.vertx:vertx-lang-kotlin:$vertx_version"
     // 功能库
     compile "org.apache.calcite:calcite-core:$calcite_version"
+    compile files('../kt-sql-hbase-ex/build/libs/kt-sql-hbase-ex-1.0-SNAPSHOT.jar')
     compile files('../calcite/server/target/calcite-server-1.18.0-SNAPSHOT.jar')
     compile group: 'org.apache.hbase', name: 'hbase-client', version: "$hbaseclient_version"
     compile "org.apache.tephra:tephra-api:$tephra_version"
