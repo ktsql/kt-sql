@@ -3,7 +3,7 @@ package me.principality.ktsql.utils.config
 import com.typesafe.config.ConfigFactory
 import java.util.*
 
-// TODO put data to zookeeper?
+// TODO put data to distributed configure center?
 object ConfigureProvider {
     private val info = Properties()
     private val config = ConfigFactory.load()

@@ -10,11 +10,12 @@ import java.util.*
 /**
  * 继承Driver，对逻辑进行重写
  */
-class SqlDriver : Driver {
+class SqlDriver() : Driver() {
     val CONNECT_STRING_PREFIX = "jdbc:ktsql:"
 
-    constructor() {
+    init {
         Driver()
+
         // 下面开始做一些自己的初始化工作
     }
 

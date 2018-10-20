@@ -6,6 +6,6 @@ import java.util.*
 
 object SqlUtil {
     fun toResponse(resultSet: ResultSet): Optional<CommandResponsePackets> {
-        return Optional.empty()
+        return Optional.empty() // fixme
     }
 }

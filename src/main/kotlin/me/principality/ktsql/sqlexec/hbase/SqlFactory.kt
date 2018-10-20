@@ -5,7 +5,7 @@ import java.sql.ResultSetMetaData
 import java.util.*
 
 /**
- * SqlDriver会在jdbc调用时，完成SqlFactory的初始化，并保存在protected final AvaticaFactory factory变量中
+ * SqlDriver会在jdbc调用时，完成SqlFactory的初始化，并保存在protected final AvaticaFactory factory变量中，
  * SqlFactory继承AvaticaFactory，沿用现有实现，同时改写newConnection，把定制的Schema传进去
  */
 class SqlFactory : AvaticaFactory {
