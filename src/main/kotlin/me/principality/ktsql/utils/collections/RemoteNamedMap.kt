@@ -13,12 +13,19 @@ import java.util.*
 /**
  * 实现class NameMap<V>的接口，并作为其替代
  */
-class RemoteNamedMap<V : String> {
+class RemoteNamedMap<V : String> : NameMap<V> {
     private val table: Table
     private val family: String = "columnFamily"
 
     constructor(name: String) {
         table = HBaseConnection.connection().getTable(TableName.valueOf(name))
+    }
+
+    companion object {
+        /** Creates a NameMap that is an immutable copy of a given map.  */
+        fun <V> immutableCopyOf(names: Map<String, V>): NameMap<*> {
+            return NameMap.immutableCopyOf(names)
+        }
     }
 
     override fun toString(): String {
@@ -33,12 +40,7 @@ class RemoteNamedMap<V : String> {
         return this === obj || obj is RemoteNamedMap<*> && table == obj.table
     }
 
-    /** Creates a NameMap that is an immutable copy of a given map.  */
-    fun <V> immutableCopyOf(names: Map<String, V>): NameMap<*> {
-        return NameMap.immutableCopyOf(names)
-    }
-
-    fun put(key: String, v: V) {
+    override fun put(key: String, v: V) {
         //进行数据插入
         val put = Put(Bytes.toBytes(generateRowkey(key)))
         put.addColumn(Bytes.toBytes(family), Bytes.toBytes(key), Bytes.toBytes(v))
@@ -48,7 +50,7 @@ class RemoteNamedMap<V : String> {
     /** Returns a map containing all the entries in the map that match the given
      * name. If case-sensitive, that map will have 0 or 1 elements; if
      * case-insensitive, it may have 0 or more.  */
-    fun range(name: String, caseSensitive: Boolean): NavigableMap<String, V> {
+    override fun range(name: String, caseSensitive: Boolean): NavigableMap<String, V> {
         val map = TreeMap<String, String>(COMPARATOR)
         val scan = Scan()
         var rs: ResultScanner? = null
@@ -76,12 +78,12 @@ class RemoteNamedMap<V : String> {
 
     /** Returns whether this map contains a given key, with a given
      * case-sensitivity.  */
-    fun containsKey(name: String, caseSensitive: Boolean): Boolean {
+    override fun containsKey(name: String, caseSensitive: Boolean): Boolean {
         return !range(name, caseSensitive).isEmpty()
     }
 
     /** Returns the underlying map.  */
-    fun map(): NavigableMap<String, V> {
+    override fun map(): NavigableMap<String, V> {
         val map = TreeMap<String, String>(COMPARATOR)
         val scan = Scan()
         var rs: ResultScanner? = null
@@ -109,7 +111,7 @@ class RemoteNamedMap<V : String> {
      * 因为kotlin语言限制的问题，此处采用V?作为返回值
      */
     @Experimental
-    fun remove(key: String): V? {
+    override fun remove(key: String): V? {
         val range = range(key, false)
         if (!range.isEmpty()) {
             val rowKey = generateRowkey(key)

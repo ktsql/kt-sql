@@ -19,6 +19,13 @@ class SqlDriver() : Driver() {
         // 下面开始做一些自己的初始化工作
     }
 
+    // 把自己注册到jdbc driver代码中，这里是延迟加载，还需要优化
+    companion object {
+        init {
+            SqlDriver().register()
+        }
+    }
+
     /**
      * 这个是一定要继承的，因为在一开始被UnregisteredDriver.connect(url, info)调用
      */
@@ -55,13 +62,6 @@ class SqlDriver() : Driver() {
             val connection = this.factory.newConnection(this, this.factory, url, info2)
             this.handler.onConnectionInit(connection)
             return connection
-        }
-    }
-
-    // 把自己注册到jdbc driver代码中
-    companion object {
-        init {
-            SqlDriver().register()
         }
     }
 }

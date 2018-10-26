@@ -8,7 +8,7 @@ import java.sql.ResultSet
 import kotlin.test.assertEquals
 
 class CalciteTest {
-    private val TEST_TABLE_NAME = "HBASE.t"
+    private val TEST_TABLE_NAME = "t" // "HBASE.t"
     private val TEST_TABLE_INDEX = "idx"
     /**
      * 测试select, insert, create, drop

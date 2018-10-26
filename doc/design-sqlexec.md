@@ -1,17 +1,17 @@
 # sql exec
 
-## SQL扩展
+## 1. SQL扩展
 https://calcite.apache.org/docs/adapter.html#extending-the-parser
 CREATE INDEX index_name[(indextype)] ON table(column_name[ ASC | DESC ] [ ,...n ])
 DROP INDEX <index_name> ON table
 
-### Calcite语法分析实现
+### 1.1 Calcite语法分析实现
 
 Calcite的语法解析文件 file (Parser.jj) 用 javacc (http://javacc.java.net/)
 和 Freemarker (http://freemarker.org/) 编写，Freemaker为Parser.jj提供了变量设置的功能，
 通过fmpp(freemaker)的支持，可以在语法解析前，先做变量替换，然后再做代码生成
 
-#### FreeMaker
+#### 1.1.1 FreeMaker
 
 fmpp: http://fmpp.sourceforge.net
 
@@ -19,7 +19,7 @@ fmpp设置的值，会被替换到.jj文件中，可以通过.fmpp文件进行�
 
 fmpp内置了FreeMaker的引擎，通过调用fmpp core即可使用FreeMaker和fmpp的扩展功能
 
-#### JavaCC
+#### 1.1.2 JavaCC
 
 https://www.ibm.com/developerworks/cn/xml/x-javacc/part1/index.html
 https://www.ibm.com/developerworks/cn/xml/x-javacc/part2/
@@ -35,7 +35,7 @@ JavaCC .jj 文件语法和标准的 BNF 之间的主要区别在于：利用 Jav
 
 http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
 
-#### 语法树实现、执行的说明
+#### 1.1.3 语法树实现、执行的说明
 
 如果要生成CREATE TABLE的语法树，calcite的实现方法是：
 1. 在calcite-core中预留了create开头的语法（这意味着如果要创建新的语法需要修改calcite-core）
@@ -48,7 +48,7 @@ http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
 因为JavaCC并没有生成语法树这一环节，所以从解析到语法树建立这一步需要手动写代码，
 在JavaCC BNF表达式中，如果碰到匹配的语法，则创建相应的语法树节点，通过深度搜索建立SqlNode嵌套关联的方式，建立语法树
 
-### 扩展语法的步骤
+### 1.2 扩展语法的步骤
 
 如果是已经在语法中支持的操作，如create/drop操作
 
@@ -62,7 +62,7 @@ http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
 - 如果是基于calcite-core扩展的节点，在优化逻辑计划的时候，节点会有对应匹配的扩展规则，否则需要扩展calcite-core
 - 如果SqlNode需要表达的元素不足，如在核心库中不支持的SqlKind，则需要通过修改calcite-core完成
 
-## SQL执行速度的提升
+## 2. SQL执行速度的提升
 
 参考LocustDB和MapD的思路，对calcite进行优化
 
@@ -92,9 +92,11 @@ SQL的操作可以拆分为以下几个步骤
 
 Calcite已经支持把Filter、Project分布式下推到存储节点上，但执行的运行空间为单核单线程，性能有待提升。
 
-## Calcite代码笔记
+org.apache.calcite.adapter.enumerable 有内存化计算的实现
 
-### calcite-core
+## 3. Calcite代码笔记
+
+### 3.1 calcite-core
 
 calcite-core依赖以下模块：
 1. calcite-linq4j
@@ -143,7 +145,7 @@ CalciteConnection创建时，会完成相关元素的创建，参考调用链：
     this.metaData = factory.newDatabaseMetaData(this);
 ```
 
-### calcite-jdbc
+### 3.2 calcite-jdbc
 
 因为对jdbc的扩展，是实现calcite定制的关键，所以这里梳理一下calcite-jdbc的类关系
 
@@ -175,7 +177,7 @@ calcite-jdbc的表创建实现代码逻辑如下(查看SqlCreateTable.execute)�
    4. AvaticaConnection提供了executeQueryInternal()的实现，实际调用的是Meta.execute
    5. Meta是interface，最终执行的是CalciteMetaImpl
 
-### Meta
+### 3.3 Meta
 
 在calcite中引入了几个概念：
 1. schema 用于表述初始化所需的信息，如库名，因其实现的原因，只能只读
@@ -224,7 +226,7 @@ Calcite的ResultSetMeta实现，可以参考AvaticaResultSetMetaData
 if (sqlNode.getKind().belongsTo(SqlKind.DDL)) 会调用SqlNode(SqlExecutableStatement).execute(),
 最后是通过Schema.add把表添加到Schema中，可通过接管Schema实现自定义的
 
-### SQL执行
+### 3.4 SQL执行
 
 执行的入口为CalcitePrepareImpl的prepare，调用链：
 statement.prepareAndExecute()->connection.prepareAndExecute()->meta.prepareAndExecute()
@@ -238,13 +240,17 @@ SQL解析执行的过程为 <= 参考：Prepare.prepareSql()：
 1. 解析SQL，转换成SqlNode
 2. 对SqlNode进行检查（采取自顶向下的递归方式），确认每一节点的语法有效性（是否和Meta信息一致）
 3. 把SqlNode转换成为RelNode，然后对RelNode进行结构优化
-4. 调用最终的执行函数，如Prepare.implement()
+4. 调用adaptor的执行函数，如Prepare.implement()，返回Enumerable(此时完成外部的Scan或Modify并返回结果)
+5. 最后调用Enumerable.enumerator，触发全部的逻辑(在calcite本地计算的逻辑)
 
 SqlNode的生成采用JavaCC BNF解析的方式生成，以嵌套语法树的方式组织。
 Calcite提供了SqlToRelConverter把SqlNode转换成RelNode，以便执行计划优化器对语法树进行优化，
 RelNode的结构组织也是嵌套语法树，完成优化后，由interpreter模块解释执行。解释执行的入口为execute调用。
 
-#### Prepare.implement()
+RelNode转换成为代码（通过Expression），Expression可以通过compiler生成binary code
+
+#### 3.4.1 Prepare.implement()
+
 Prepare.implement()把需要执行的RelNode操作，转换成Java代码，然后通过compiler，
 把代码转换成可执行的binary code，参考IClassBodyEvaluator
 
@@ -281,3 +287,97 @@ public Class getElementType() {
 }
 ```
 
+以下是查询时，对应生成的binary code
+```java
+org.apache.calcite.DataContext root;
+
+public org.apache.calcite.linq4j.Enumerable bind(final org.apache.calcite.DataContext root0) {
+  root = root0;
+  return org.apache.calcite.schema.Schemas.queryable(
+  	root, root.getRootSchema().getSubSchema("HBASE"), java.lang.Object[].class, "T").asEnumerable();
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+```
+
+#### 3.4.2 DML操作
+
+QUERY/INSERT/UPDATE/DELETE
+
+插入操作的操作次序为：
+1. 获得可以操作的collection列表
+2. 采用linq4j的接口，把需要修改的数据放入collection
+3. 返回执行代码Signature(JaninoCompiler返回)，看CalciteMetaImpl把parseQuery返回的signature
+4. 对返回的代码进行调用(查看AvaticaConnection对execute的实现 line:666)
+5. 使用cursor等方式产生最终的结果列表，并放到statement中返回
+
+Result实现了对signature的操作，参考CalciteResultSet.execute()，这里算是lazy execute()，先prepare后获取数据
+
+CalciteResultSet.execute() -> AvaticaResultSet.execute() -> CalciteMetaImpl.createIterable()
+-> CalciteMetaImpl.getConnection().enumerable -> signature.enumerable() -> bindable.bind()
+
+查询调用的入口为：
+Schemas.queryable()
+
+```java
+org.apache.calcite.DataContext root;
+
+public org.apache.calcite.linq4j.Enumerable bind(final org.apache.calcite.DataContext root0) {
+  root = root0;
+  return org.apache.calcite.schema.Schemas.queryable(
+  	root, root.getRootSchema().getSubSchema("HBASE"), java.lang.Object[].class, "T").asEnumerable();
+}
+
+
+public Class getElementType() {
+  return java.lang.String.class;
+}
+```
+
+### 3.5 adaptor
+
+数据的查询，可以通过TableScan或者ScannableTable来实现。
+
+如果是通过TableScan的方式来实现，需要register(RelOptPlanner planner)，以下为注册相关代码代码：
+```java
+  planner.addRule(CsvProjectTableScanRule.INSTANCE);
+
+  public static final CsvProjectTableScanRule INSTANCE =
+      new CsvProjectTableScanRule(RelFactories.LOGICAL_BUILDER);
+
+  /**
+   * Creates a CsvProjectTableScanRule.
+   *
+   * @param relBuilderFactory Builder for relational expressions
+   */
+  public CsvProjectTableScanRule(RelBuilderFactory relBuilderFactory) {
+    super(
+        operand(LogicalProject.class,
+            operand(CsvTableScan.class, none())),
+        relBuilderFactory,
+        "CsvProjectTableScanRule");
+  }
+
+   @Override public void onMatch(RelOptRuleCall call) {
+     final LogicalProject project = call.rel(0);
+     final CsvTableScan scan = call.rel(1);
+     int[] fields = getProjectFields(project.getProjects());
+     if (fields == null) {
+       // Project contains expressions more complex than just field references.
+       return;
+     }
+     call.transformTo(
+         new CsvTableScan(
+             scan.getCluster(),
+             scan.getTable(),
+             scan.csvTable,
+             fields));
+   }
+```
+在代码从SqlNode->RelNode->Node进行转换的时候，根据类型转换成对应的RelNode操作。
+
+如果是ScannableTable，TableScanNode.create会根据传进去的上下文转换成实际的实现，
+在执行TableScanNode的时候，调用其实现。

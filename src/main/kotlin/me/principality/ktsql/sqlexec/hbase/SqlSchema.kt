@@ -35,7 +35,7 @@ import org.apache.calcite.util.NameSet
  * 元数据的管理策略有两种：一种是有更新的时候，通知到所有的节点；
  * 另外一种是本地不缓存，每次都去中心服务器获取。这两种策略都需要考虑一致性和性能问题。
  *
- * 初步的方案是把数据都放在系统表上，另外drop table和drop index，要特别小心
+ * 初步的方案是把数据都放在系统表上，另外drop table和drop index，要特别小心，注意一致性问题
  */
 class SqlSchema : CalciteSchema {
     constructor(parent: CalciteSchema,
