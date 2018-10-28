@@ -21,7 +21,7 @@ object ConfigureProvider {
                 ("inline:"
                         + "{\n"
                         + "  version: '1.0',\n"
-                        + "  defaultSchema: 'HBASE',"
+//                        + "  defaultSchema: 'HBASE',"
                         + "   schemas: [\n"
                         + "     {\n"
                         + "       type: 'custom',\n"

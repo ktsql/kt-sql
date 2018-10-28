@@ -43,7 +43,7 @@ http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
   - 通过配置config.fmpp，完成create的后续语法的对应函数（在calcite-core定义了create后继语法为相应的SqlCreate）
   - 通过配置parserImpls.ftl，完成后续节点的语法解析，并完成JavaCC生成的parser函数与实际创建语法树节点的调用关联
 3. 按parser.jj规范完成逻辑的代码实现后，生成的结果为SqlNode，SqlNode生成语法树、逻辑计划优化等环节不需关注，直接关注节点执行即可
-4. 节点的执行，参考org.apache.calcite.interpreter的实现，由SqlNode转换成RelNode后，Interpreter负责执行
+4. 由SqlNode转换成RelNode节点后，RelNode节点的执行，参考org.apache.calcite.interpreter的实现，Interpreter负责执行
 
 因为JavaCC并没有生成语法树这一环节，所以从解析到语法树建立这一步需要手动写代码，
 在JavaCC BNF表达式中，如果碰到匹配的语法，则创建相应的语法树节点，通过深度搜索建立SqlNode嵌套关联的方式，建立语法树
@@ -76,7 +76,7 @@ http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
 数据的读取、计算、汇总处理都有大量的耗时
 
 如果把处理分布到设备中，读取、计算进行下推后，汇总处理节点则成为性能的瓶颈，
-如在一个万兆的网络环境，每秒读入约1G的数据（压缩后且为投影数据），
+如在一个万兆的网络环境，每秒读入约1G的数据，当数据压缩且为投影数据时，
 这意味着需要在秒级处理上亿行的数据，计算单元必须要具备对应的计算能力
 
 SQL的操作可以拆分为以下几个步骤
@@ -90,8 +90,7 @@ SQL的操作可以拆分为以下几个步骤
 8. Limit (LIMIT).
 9. Merge: Merge two results into one (UNION ALL).
 
-Calcite已经支持把Filter、Project分布式下推到存储节点上，但执行的运行空间为单核单线程，性能有待提升。
-
+Calcite已经支持把Filter、Project分布式下推到存储节点上，但聚合计算执行的运行空间仍为单核单线程，性能有待提升。
 org.apache.calcite.adapter.enumerable 有内存化计算的实现
 
 ## 3. Calcite代码笔记
@@ -103,10 +102,10 @@ calcite-core依赖以下模块：
 2. calcite-avatica
 3. calcite-avatica-server
 
+linq4j是底层数据查询修改操作的支持类
+
 calcite对外调用提供了jdbc接口：
 jdbc是calcite-core内置功能，在官方文档中，如何使用calcite也是以jdbc为基础介绍如何使用
-
-linq4j是底层数据查询的支持类
 
 avatica/avatica-server是支持网络连接的jdbc接口，calcite-core中的jdbc(本地)实现，
 使用了avatica中的实现代码
@@ -381,3 +380,33 @@ public Class getElementType() {
 
 如果是ScannableTable，TableScanNode.create会根据传进去的上下文转换成实际的实现，
 在执行TableScanNode的时候，调用其实现。
+
+数据的插入，通过TableModify实现。通过语法分析产生的SqlInsert，会在Sql2Rel时，
+调用convertQuery->convertQueryRecursive->convertInsert->createModify，
+此时ModifiableTable.toModificationRel被调用，返回TableModify(jdbcTable返回LogicalTableModify)
+
+TableModify在Prepare.prepareSql中，被转换成EnumerableTableModify，
+```
+EnumerableTableModify(table=[[HBASE, T]], operation=[INSERT], flattened=[false]): rowcount = 1.0, cumulative cost = {2.0 rows, 1.0 cpu, 0.0 io}, id = 17
+  EnumerableValues(tuples=[[{ 'XXXX' }]]): rowcount = 1.0, cumulative cost = {1.0 rows, 1.0 cpu, 0.0 io}, id = 13
+```
+在EnumerableInterpretable.toBindable中，EnumerableTableModify.implement生成相应的处理代码(调用getModifiableCollection)，
+并转换成binary code，由PrepareCallback.callback执行，最终调用AvaticaResultSet.execute
+
+数据的修改，convertQuery->convertQueryRecursive->convertUpdate时，会创建LogicalTableModify，
+```
+LogicalTableModify(table=[[T]], operation=[UPDATE], updateColumnList=[[ROWKEY]], sourceExpressionList=[['ZZZZ']], flattened=[false])
+  LogicalProject(ROWKEY=[$0], EXPR$0=['ZZZZ'])
+    LogicalFilter(condition=[=($0, 'XXXX')])
+      EnumerableTableScan(table=[[T]])
+
+EnumerableTableModify(table=[[T]], operation=[UPDATE], updateColumnList=[[ROWKEY]], sourceExpressionList=[['ZZZZ']], flattened=[false]): rowcount = 15.0, cumulative cost = {145.0 rows, 231.0 cpu, 0.0 io}, id = 50
+  EnumerableProject(ROWKEY=[$0], EXPR$0=['ZZZZ']): rowcount = 15.0, cumulative cost = {130.0 rows, 231.0 cpu, 0.0 io}, id = 49
+    EnumerableFilter(condition=[=($0, 'XXXX')]): rowcount = 15.0, cumulative cost = {115.0 rows, 201.0 cpu, 0.0 io}, id = 48
+      EnumerableTableScan(table=[[T]]): rowcount = 100.0, cumulative cost = {100.0 rows, 101.0 cpu, 0.0 io}, id = 19
+```
+经过optimize的处理后，转换为
+```
+EnumerableCalc(expr#0=[{inputs}], expr#1=['ZZZZ'], expr#2=['XXXX'], expr#3=[=($t0, $t2)], proj#0..1=[{exprs}], $condition=[$t3]): rowcount = 15.0, cumulative cost = {115.0 rows, 801.0 cpu, 0.0 io}, id = 62
+  EnumerableTableScan(table=[[T]]): rowcount = 100.0, cumulative cost = {100.0 rows, 101.0 cpu, 0.0 io}, id = 19
+```
