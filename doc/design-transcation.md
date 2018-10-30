@@ -37,4 +37,4 @@ Google percolator提出在MVCC基础上，实现增量索引处理事务的方�
 http://www.cnblogs.com/foxmailed/p/3887430.html
 https://wenku.baidu.com/view/c1264b3a1eb91a37f1115cbf.html
 
-如果tephra的核心逻辑实现没有问题，percolator泛泛读一下即可
+如果tephra的核心逻辑实现没有问题，percolator论文泛泛读一下即可

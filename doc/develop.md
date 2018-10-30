@@ -1,12 +1,12 @@
-# Development Environment Setup
+# Development Environment Notes
 
-1. mongo
-2. hbase
-3. tephra
+## Setup
 
-## NOTES
+依赖组件：
+1. hbase
+2. tephra
 
-1. run mongodb in docker
-2. run hbase/tephra in host
-3. run application in host
+环境搭建：
+1. run hbase/tephra in host
+2. run application in host
 

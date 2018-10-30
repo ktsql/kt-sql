@@ -41,7 +41,7 @@ KV-store实现方案，参考：
 AsyncHBase提供了通过ZKClient获取HBase RootRegion连接地址的方法
 
 以下是asynchbase中的相关说明：
-
+```
 摘录自HBaseClient的注释
 
 1. HBaseClient每连接只需创建一次（共享给多个协程使用）
@@ -61,6 +61,7 @@ AsyncHBase提供了通过ZKClient获取HBase RootRegion连接地址的方法
 1、schema获取region list并缓存
 2、schema提供重新获取region list的接口，并初始化到table中
 3、如果table发现regionclient出错，通过schema重新获取region list
+```
 
 ## 参考链接
 

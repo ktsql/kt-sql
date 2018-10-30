@@ -8,7 +8,7 @@ import java.sql.ResultSet
 import kotlin.test.assertEquals
 
 class CalciteTest {
-    private val TEST_TABLE_NAME = "t" // "HBASE.t"
+    private val TEST_TABLE_NAME = "HBASE.t" // "HBASE.t"
     private val TEST_TABLE_INDEX = "idx"
     /**
      * 测试select, insert, create, drop
@@ -17,17 +17,17 @@ class CalciteTest {
     fun testSqlPacketHandler() {
         val handler = SqlPacketHandler()
 //        val rr = handler.execute("select * from ${TEST_TABLE_NAME}")
-        val r0 = handler.executeDdl("create table if not exists ${TEST_TABLE_NAME} (rowkey varchar(255))")
-        val r1 = handler.execute("insert into ${TEST_TABLE_NAME} values ('XXXX')")
+//        val r0 = handler.executeDdl("create table if not exists ${TEST_TABLE_NAME} (rowkey varchar(255))")
+//        val r1 = handler.execute("insert into ${TEST_TABLE_NAME} values ('XXXX')")
         // fixme 下面的update代码无法正常运行
 //        val rr = handler.execute("update ${TEST_TABLE_NAME} set rowkey='ZZZZ' where rowkey='XXXX'")
         val r2 = handler.executeQuery("select * from ${TEST_TABLE_NAME}")
-        val rr = handler.execute("delete from ${TEST_TABLE_NAME} where rowky='XXXX'")
-        val r3 = handler.execute("insert into ${TEST_TABLE_NAME} values ('YYYY')")
-        val r4 = handler.executeQuery("select * from ${TEST_TABLE_NAME}")
-        val r5 = handler.executeDdl("create index ${TEST_TABLE_INDEX} on ${TEST_TABLE_NAME} (rowkey)")
-        val r6 = handler.execute("insert into ${TEST_TABLE_NAME} values ('AAAA')")
-        val r7 = handler.executeDdl("drop index ${TEST_TABLE_INDEX} on ${TEST_TABLE_NAME}")
+        val rr = handler.execute("delete from ${TEST_TABLE_NAME} where rowkey='XXXX'")
+//        val r3 = handler.execute("insert into ${TEST_TABLE_NAME} values ('YYYY')")
+//        val r4 = handler.executeQuery("select * from ${TEST_TABLE_NAME}")
+//        val r5 = handler.executeDdl("create index ${TEST_TABLE_INDEX} on ${TEST_TABLE_NAME} (rowkey)")
+//        val r6 = handler.execute("insert into ${TEST_TABLE_NAME} values ('AAAA')")
+//        val r7 = handler.executeDdl("drop index ${TEST_TABLE_INDEX} on ${TEST_TABLE_NAME}")
         val r8 = handler.executeDdl("drop table if exists ${TEST_TABLE_NAME}")
         assertEquals(0, 0)
     }

@@ -43,7 +43,7 @@ http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
   - 通过配置config.fmpp，完成create的后续语法的对应函数（在calcite-core定义了create后继语法为相应的SqlCreate）
   - 通过配置parserImpls.ftl，完成后续节点的语法解析，并完成JavaCC生成的parser函数与实际创建语法树节点的调用关联
 3. 按parser.jj规范完成逻辑的代码实现后，生成的结果为SqlNode，SqlNode生成语法树、逻辑计划优化等环节不需关注，直接关注节点执行即可
-4. 由SqlNode转换成RelNode节点后，RelNode节点的执行，参考org.apache.calcite.interpreter的实现，Interpreter负责执行
+4. 由SqlNode转换成RelNode节点后，进行RelNode Tree优化，RelNode节点再通过implement转换成binary code，由Prepare.callback负责执行
 
 因为JavaCC并没有生成语法树这一环节，所以从解析到语法树建立这一步需要手动写代码，
 在JavaCC BNF表达式中，如果碰到匹配的语法，则创建相应的语法树节点，通过深度搜索建立SqlNode嵌套关联的方式，建立语法树
@@ -64,8 +64,6 @@ http://www.cnblogs.com/Gavin_Liu/archive/2009/03/07/1405029.html
 
 ## 2. SQL执行速度的提升
 
-参考LocustDB和MapD的思路，对calcite进行优化
-
 一个完整的SQL语句执行的流程是：
 1. 解析输入流，生成语法树
 2. 语法树优化，生成逻辑计划
@@ -85,7 +83,7 @@ SQL的操作可以拆分为以下几个步骤
 3. LeftJoin: The algebraic rules for an outer join are so different from a Join that this needs to be a separate operator (LEFT JOIN).
 4. Filter: Removing rows based on a conditional expression (WHERE, HAVING).
 5. Select(Project): Evaluating new values based on a value expression list (SELECT list).
-6. Aggregate: Grouping rows based on an aggregate expression list (GROUP BY, UNION).
+6. Aggregate: Grouping rows based on an aggregate expression list (GROUP BY, UNION). <- 这里开始由enumerable处理
 7. Sort (ORDER BY).
 8. Limit (LIMIT).
 9. Merge: Merge two results into one (UNION ALL).
@@ -239,12 +237,12 @@ SQL解析执行的过程为 <= 参考：Prepare.prepareSql()：
 1. 解析SQL，转换成SqlNode
 2. 对SqlNode进行检查（采取自顶向下的递归方式），确认每一节点的语法有效性（是否和Meta信息一致）
 3. 把SqlNode转换成为RelNode，然后对RelNode进行结构优化
-4. 调用adaptor的执行函数，如Prepare.implement()，返回Enumerable(此时完成外部的Scan或Modify并返回结果)
-5. 最后调用Enumerable.enumerator，触发全部的逻辑(在calcite本地计算的逻辑)
+4. 调用adaptor的执行函数，如Prepare.implement()，返回Enumerable(此时完成外部的Scan或Modify的代码生成并返回结果)
+5. 最后经过ResultSet.execute()返回enumerable，调用bindable.bind(dataContext)，触发全部的逻辑(在calcite本地计算的逻辑)
 
 SqlNode的生成采用JavaCC BNF解析的方式生成，以嵌套语法树的方式组织。
 Calcite提供了SqlToRelConverter把SqlNode转换成RelNode，以便执行计划优化器对语法树进行优化，
-RelNode的结构组织也是嵌套语法树，完成优化后，由interpreter模块解释执行。解释执行的入口为execute调用。
+RelNode的结构组织也是嵌套语法树，完成优化后，由CalciteResultSet模块解释执行。解释执行的入口为execute调用。
 
 RelNode转换成为代码（通过Expression），Expression可以通过compiler生成binary code
 
@@ -380,6 +378,26 @@ public Class getElementType() {
 
 如果是ScannableTable，TableScanNode.create会根据传进去的上下文转换成实际的实现，
 在执行TableScanNode的时候，调用其实现。
+CalciteCatalogReader.getTable调用RelOptTableImpl.create，创建对应的实现类，
+如QueryableTable或者是ScannableTable, FilterableTable...
+```
+	at me.principality.ktsql.backend.hbase.HBaseTable.asQueryable(HBaseTable.kt:71)
+	at org.apache.calcite.schema.Schemas.queryable(Schemas.java:212)
+	at Baz.bind(Unknown Source)
+	at org.apache.calcite.jdbc.CalcitePrepare$CalciteSignature.enumerable(CalcitePrepare.java:356)
+	at org.apache.calcite.jdbc.CalciteConnectionImpl.enumerable(CalciteConnectionImpl.java:309)
+	at org.apache.calcite.jdbc.CalciteMetaImpl._createIterable(CalciteMetaImpl.java:506)
+	at org.apache.calcite.jdbc.CalciteMetaImpl.createIterable(CalciteMetaImpl.java:497)
+	at org.apache.calcite.avatica.AvaticaResultSet.execute(AvaticaResultSet.java:182)
+	at org.apache.calcite.jdbc.CalciteResultSet.execute(CalciteResultSet.java:64)
+	at org.apache.calcite.jdbc.CalciteResultSet.execute(CalciteResultSet.java:43)
+	at org.apache.calcite.avatica.AvaticaConnection$1.execute(AvaticaConnection.java:667)
+	at org.apache.calcite.jdbc.CalciteMetaImpl.prepareAndExecute(CalciteMetaImpl.java:566)
+	at org.apache.calcite.avatica.AvaticaConnection.prepareAndExecuteInternal(AvaticaConnection.java:675)
+	at org.apache.calcite.avatica.AvaticaStatement.executeInternal(AvaticaStatement.java:156)
+	at org.apache.calcite.avatica.AvaticaStatement.executeQuery(AvaticaStatement.java:227)
+```
+先通过Schemas.queryable把Table转换成QueryableTable，再通过asEnumerable()转成enumerator
 
 数据的插入，通过TableModify实现。通过语法分析产生的SqlInsert，会在Sql2Rel时，
 调用convertQuery->convertQueryRecursive->convertInsert->createModify，

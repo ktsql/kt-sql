@@ -21,7 +21,7 @@ object ConfigureProvider {
                 ("inline:"
                         + "{\n"
                         + "  version: '1.0',\n"
-//                        + "  defaultSchema: 'HBASE',"
+                        + "  defaultSchema: 'HBASE'," // 注释掉这行，强制创建MutableArrayTable
                         + "   schemas: [\n"
                         + "     {\n"
                         + "       type: 'custom',\n"
