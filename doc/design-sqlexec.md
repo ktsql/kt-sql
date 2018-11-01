@@ -284,7 +284,7 @@ public Class getElementType() {
 }
 ```
 
-以下是查询时，对应生成的binary code
+以下是Scannable查询时，对应生成的binary code
 ```java
 org.apache.calcite.DataContext root;
 
@@ -317,21 +317,22 @@ CalciteResultSet.execute() -> AvaticaResultSet.execute() -> CalciteMetaImpl.crea
 -> CalciteMetaImpl.getConnection().enumerable -> signature.enumerable() -> bindable.bind()
 
 查询调用的入口为：
-Schemas.queryable()
+Schemas.enumerable()
 
 ```java
 org.apache.calcite.DataContext root;
 
 public org.apache.calcite.linq4j.Enumerable bind(final org.apache.calcite.DataContext root0) {
   root = root0;
-  return org.apache.calcite.schema.Schemas.queryable(
-  	root, root.getRootSchema().getSubSchema("HBASE"), java.lang.Object[].class, "T").asEnumerable();
+  return org.apache.calcite.runtime.Enumerables.slice0(
+    org.apache.calcite.schema.Schemas.enumerable(
+      (org.apache.calcite.schema.FilterableTable) root.getRootSchema().getSubSchema("HBASE").getTable("T"), root));
 }
-
 
 public Class getElementType() {
   return java.lang.String.class;
 }
+
 ```
 
 ### 3.5 adaptor
@@ -377,7 +378,7 @@ public Class getElementType() {
 在代码从SqlNode->RelNode->Node进行转换的时候，根据类型转换成对应的RelNode操作。
 
 如果是ScannableTable，TableScanNode.create会根据传进去的上下文转换成实际的实现，
-在执行TableScanNode的时候，调用其实现。
+在执行TableScanNode的时候，调用其实现implement。在Validate的时候，会填充好上下文，
 CalciteCatalogReader.getTable调用RelOptTableImpl.create，创建对应的实现类，
 如QueryableTable或者是ScannableTable, FilterableTable...
 ```

@@ -12,8 +12,10 @@ import java.util.*
 
 /**
  * 实现class NameMap<V>的接口，并作为其替代
+ *
+ * 在一个连接中，会出现多次读取NameMap的情况
  */
-class RemoteNamedMap<V : String> : NameMap<V> {
+class RemoteNameMap<V : String> : NameMap<V> {
     private val table: Table
     private val family: String = "columnFamily"
 
@@ -37,7 +39,7 @@ class RemoteNamedMap<V : String> : NameMap<V> {
     }
 
     override fun equals(obj: Any?): Boolean {
-        return this === obj || obj is RemoteNamedMap<*> && table == obj.table
+        return this === obj || obj is RemoteNameMap<*> && table == obj.table
     }
 
     override fun put(key: String, v: V) {
