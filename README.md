@@ -1,6 +1,6 @@
-# Distributed sql engine
+# KtSQL, a NewSQL
 
-kt-sql, an implementation of distributed database. We can call it htap, newsql.
+KtSQL, an implementation of distributed database. We can call it htap or newsql.
 
 KtSQL技术理论源于Google F1/Spanner。目标是研发可满足海量数据存储管理能力，同时支持ACID特性满足在线事务数据库系统。系统除应具备事务处理能力外，还可从分布式架构体系获得带来处理能力的提升，一定程度满足在线分析的需求。
 
