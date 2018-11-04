@@ -1,4 +1,4 @@
-# distributed sql engine
+# KtSQL, a distributed database
 
 ## key feature
 

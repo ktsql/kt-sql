@@ -12,10 +12,8 @@ import java.util.*
 
 /**
  * 实现class NameMap<V>的接口，并作为其替代
- *
- * 在一个连接中，会出现多次读取NameMap的情况
  */
-class RemoteNameMap<V : String> : NameMap<V> {
+class RemoteNameMap<V> : NameMap<V> {
     private val table: Table
     private val family: String = "columnFamily"
 
@@ -45,7 +43,7 @@ class RemoteNameMap<V : String> : NameMap<V> {
     override fun put(key: String, v: V) {
         //进行数据插入
         val put = Put(Bytes.toBytes(generateRowkey(key)))
-        put.addColumn(Bytes.toBytes(family), Bytes.toBytes(key), Bytes.toBytes(v))
+        put.addColumn(Bytes.toBytes(family), Bytes.toBytes(key), Bytes.toBytes(v as String))
         table.put(put)
     }
 

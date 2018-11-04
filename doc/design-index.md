@@ -17,6 +17,8 @@ https://www.cnblogs.com/cxzdy/p/5169075.html 华为方案补充
 https://wenku.baidu.com/view/e08f261058fafab068dc020a.html 华为方案详解
 http://dequn.github.io/2016/08/29/HBase-Secondary-Index-Theory/ 华为方案相关资料
 
+参考华为二级索引的方案，索引表rowkey：DataTable Region StartKey + IndexName + IndexValue + DataTable RowKey
+
 ## 二级索引实现
 
 1. 创建一个对应于index的hbase table，如table_name.index_name

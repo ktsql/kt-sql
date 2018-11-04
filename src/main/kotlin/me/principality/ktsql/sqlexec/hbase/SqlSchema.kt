@@ -1,8 +1,9 @@
-package me.principality.ktsql.sqlexec.hbase
+package org.apache.calcite.jdbc // hack to access java protected function
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
+import me.principality.ktsql.utils.collections.RemoteNameMap
 import org.apache.calcite.jdbc.CalciteSchema
 import org.apache.calcite.schema.Function
 import org.apache.calcite.schema.Schema
@@ -11,6 +12,8 @@ import org.apache.calcite.schema.Table
 import org.apache.calcite.util.NameMap
 import org.apache.calcite.util.NameMultimap
 import org.apache.calcite.util.NameSet
+import org.apache.calcite.schema.TableMacro
+import org.apache.calcite.rel.type.RelProtoDataType
 
 /**
  * 重写Schema，实现自定义Schema的支持
@@ -38,24 +41,37 @@ import org.apache.calcite.util.NameSet
  * 初步的方案是把数据都放在系统表上，另外drop table和drop index，要特别小心，注意一致性问题
  */
 class SqlSchema : CalciteSchema {
-    constructor(parent: CalciteSchema,
-                schema: Schema,
-                name: String,
-                subSchemaMap: NameMap<CalciteSchema>,
-                tableMap: NameMap<TableEntry>,
-                latticeMap: NameMap<LatticeEntry>,
-                typeMap: NameMap<TypeEntry>,
-                functionMap: NameMultimap<FunctionEntry>,
-                functionNames: NameSet,
-                nullaryFunctionMap: NameMap<FunctionEntry>,
-                path: List<List<String>>) :
-            super(parent, schema, name, subSchemaMap, tableMap, latticeMap,
-                    typeMap, functionMap, functionNames, nullaryFunctionMap, path) {
+    protected val remoteTableMap: RemoteNameMap<TableEntry>
+    protected val remoteTypeMap: RemoteNameMap<TypeEntry>
 
+    constructor(parent: CalciteSchema?, schema: Schema?, name: String) :
+            this(parent, schema, name, null, null,
+                    null, null, null, null,
+                    null, null) {
     }
 
-    override fun getImplicitTable(tableName: String?, caseSensitive: Boolean): TableEntry {
-        TODO("not implemented")
+    constructor(parent: CalciteSchema?,
+                schema: Schema?,
+                name: String,
+                subSchemaMap: NameMap<CalciteSchema>?,
+                tableMap: NameMap<TableEntry>?,
+                latticeMap: NameMap<LatticeEntry>?,
+                typeMap: NameMap<TypeEntry>?,
+                functionMap: NameMultimap<FunctionEntry>?,
+                functionNames: NameSet?,
+                nullaryFunctionMap: NameMap<FunctionEntry>?,
+                path: List<List<String>>?) :
+            super(parent, schema, name, subSchemaMap, tableMap, latticeMap,
+                    typeMap, functionMap, functionNames, nullaryFunctionMap, path) {
+        remoteTableMap = RemoteNameMap<TableEntry>("")
+        remoteTypeMap = RemoteNameMap<TypeEntry>("")
+    }
+
+    override fun getImplicitTable(tableName: String?, caseSensitive: Boolean): TableEntry? {
+        val table = schema.getTable(tableName)
+        return if (table != null) {
+            tableEntry(tableName, table)
+        } else null
     }
 
     override fun setCache(cache: Boolean) {
@@ -63,50 +79,102 @@ class SqlSchema : CalciteSchema {
     }
 
     override fun addImplicitFuncNamesToBuilder(builder: ImmutableSortedSet.Builder<String>?) {
-        TODO("not implemented")
+        builder!!.addAll(schema.getFunctionNames())
     }
 
-    override fun getImplicitSubSchema(schemaName: String?, caseSensitive: Boolean): CalciteSchema {
-        TODO("not implemented")
+    override fun getImplicitSubSchema(schemaName: String?, caseSensitive: Boolean): CalciteSchema? {
+        val s = schema.getSubSchema(schemaName)
+        return if (s != null) {
+            SqlSchema(this, s, schemaName!!)
+        } else null
     }
 
     override fun addImplicitTableToBuilder(builder: ImmutableSortedSet.Builder<String>?) {
-        TODO("not implemented")
+        builder!!.addAll(schema.getTableNames())
     }
 
-    override fun getImplicitTableBasedOnNullaryFunction(tableName: String?, caseSensitive: Boolean): TableEntry {
-        TODO("not implemented")
+    override fun getImplicitTableBasedOnNullaryFunction(tableName: String?, caseSensitive: Boolean): TableEntry? {
+        val functions = schema.getFunctions(tableName)
+        if (functions != null) {
+            for (function in functions) {
+                if (function is TableMacro && function.getParameters().isEmpty()) {
+                    val table = (function as TableMacro).apply(ImmutableList.of())
+                    return tableEntry(tableName, table)
+                }
+            }
+        }
+        return null
     }
 
-    override fun getImplicitType(name: String?, caseSensitive: Boolean): TypeEntry {
-        TODO("not implemented")
+    override fun getImplicitType(name: String?, caseSensitive: Boolean): TypeEntry? {
+        val type = schema.getType(name)
+        return if (type != null) {
+            typeEntry(name, type)
+        } else null
     }
 
     override fun addImplicitTypeNamesToBuilder(builder: ImmutableSortedSet.Builder<String>?) {
-        TODO("not implemented")
+        builder!!.addAll(schema.getTypeNames())
     }
 
     override fun isCacheEnabled(): Boolean {
-        TODO("not implemented")
+        return false
     }
 
     override fun add(name: String?, schema: Schema?): CalciteSchema {
-        TODO("not implemented")
+        val calciteSchema = SqlSchema(this, schema!!, name!!)
+        subSchemaMap.put(name, calciteSchema)
+        return calciteSchema
     }
 
     override fun addImplicitSubSchemaToBuilder(builder: ImmutableSortedMap.Builder<String, CalciteSchema>?) {
-        TODO("not implemented")
+        val explicitSubSchemas = builder!!.build()
+        for (schemaName in schema.subSchemaNames) {
+            if (explicitSubSchemas.containsKey(schemaName)) {
+                // explicit subschema wins.
+                continue
+            }
+            val s = schema.getSubSchema(schemaName)
+            if (s != null) {
+                val calciteSchema = SqlSchema(this, s, schemaName)
+                builder.put(schemaName, calciteSchema)
+            }
+        }
     }
 
     override fun addImplicitTablesBasedOnNullaryFunctionsToBuilder(builder: ImmutableSortedMap.Builder<String, Table>?) {
-        TODO("not implemented")
+        val explicitTables = builder!!.build()
+
+        for (s in schema.functionNames) {
+            // explicit table wins.
+            if (explicitTables.containsKey(s)) {
+                continue
+            }
+            for (function in schema.getFunctions(s)) {
+                if (function is TableMacro && function.getParameters().isEmpty()) {
+                    val table = function.apply(ImmutableList.of())
+                    builder.put(s, table)
+                }
+            }
+        }
     }
 
     override fun snapshot(parent: CalciteSchema?, version: SchemaVersion?): CalciteSchema {
-        TODO("not implemented")
+        val snapshot = SqlSchema(parent!!,
+                schema.snapshot(version), name, null, tableMap, latticeMap, typeMap,
+                functionMap, functionNames, nullaryFunctionMap, path)
+        for (subSchema in subSchemaMap.map().values) {
+            val subSchemaSnapshot = subSchema.snapshot(snapshot, version)
+            snapshot.subSchemaMap.put(subSchema.name, subSchemaSnapshot)
+        }
+        return snapshot
     }
 
-    override fun addImplicitFunctionsToBuilder(builder: ImmutableList.Builder<Function>?, name: String?, caseSensitive: Boolean) {
-        TODO("not implemented")
+    override fun addImplicitFunctionsToBuilder(builder: ImmutableList.Builder<Function>?,
+                                               name: String?, caseSensitive: Boolean) {
+        val functions = schema.getFunctions(name)
+        if (functions != null) {
+            builder!!.addAll(functions)
+        }
     }
 }
