@@ -1,7 +1,9 @@
-package me.principality.ktsql.sqlexec.hbase
+package org.apache.calcite.jdbc
 
-import org.apache.calcite.avatica.ConnectStringParser
-import org.apache.calcite.avatica.UnregisteredDriver
+import me.principality.ktsql.utils.config.Version
+import org.apache.calcite.avatica.*
+import org.apache.calcite.jdbc.CalciteConnectionImpl
+import org.apache.calcite.jdbc.CalciteMetaImpl
 import org.apache.calcite.jdbc.Driver
 import java.sql.Connection
 import java.sql.SQLException
@@ -33,6 +35,9 @@ class SqlDriver() : Driver() {
         return CONNECT_STRING_PREFIX
     }
 
+    /**
+     * 重新改造SqlFactory，把factory创建的元素进行重组
+     */
     override fun getFactoryClassName(jdbcVersion: UnregisteredDriver.JdbcVersion): String {
         when (jdbcVersion) {
             UnregisteredDriver.JdbcVersion.JDBC_30,
@@ -63,5 +68,19 @@ class SqlDriver() : Driver() {
             this.handler.onConnectionInit(connection)
             return connection
         }
+    }
+
+    override fun createMeta(connection: AvaticaConnection): Meta {
+        return CalciteMetaImpl(connection as CalciteConnectionImpl, this)
+    }
+
+    override fun createDriverVersion(): DriverVersion {
+        return DriverVersion.load(
+                SqlDriver::class.java,
+                "me-principality-ktsql-jdbc.properties",
+                "KtSQL JDBC Driver",
+                Version.version,
+                "KtSQL",
+                Version.version)
     }
 }

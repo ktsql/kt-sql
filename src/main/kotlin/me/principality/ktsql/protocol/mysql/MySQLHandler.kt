@@ -35,7 +35,7 @@ class MySQLHandler : Handler<NetSocket> {
     private var currentSequenceId: Int = 0
 
     override fun handle(socket: NetSocket?) {
-        logger.info { "${socket?.remoteAddress() ?: "invalid socket"}" }
+        logger.info("${socket?.remoteAddress() ?: "invalid socket"}")
         if (socket != null) {
             remoteSocket = socket
             handshake(socket)

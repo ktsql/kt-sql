@@ -2,6 +2,7 @@ package org.apache.calcite.jdbc
 
 // hack to access java protected function
 
+import me.principality.ktsql.utils.config.Version
 import org.apache.calcite.adapter.java.JavaTypeFactory
 import org.apache.calcite.avatica.*
 import org.apache.calcite.jdbc.CalciteConnectionImpl
@@ -17,8 +18,8 @@ import java.util.*
  * SqlFactory继承AvaticaFactory，沿用现有实现，同时改写newConnection，把定制的Schema传进去
  */
 class SqlFactory : AvaticaFactory {
-    protected val major: Int = 0
-    protected val minor: Int = 1
+    protected val major: Int = Version.major.toInt()
+    protected val minor: Int = Version.minor.toInt()
 
     private lateinit var schema: SqlSchema
 
