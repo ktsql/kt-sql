@@ -335,6 +335,18 @@ public Class getElementType() {
 
 ```
 
+#### 3.4.3 建表
+
+calcite建表流程：
+1. 前置检查(parse)，直接进入execute，不走convert->validate->trim->optimize->implement
+2. 调用执行语句，附上下文
+3. 获取将要修改的CalcitSchema
+4. 获取使用到的typeFactory
+5. 获取columnList，并把定义的columnList转换成实际存储的类型
+6. 初始化建表所需的相关参数
+7. 判断表是否存在，如果存在，报错
+8. 建表，把表加到CalciteSchema
+
 ### 3.5 adaptor
 
 数据的查询，可以通过TableScan或者ScannableTable来实现。

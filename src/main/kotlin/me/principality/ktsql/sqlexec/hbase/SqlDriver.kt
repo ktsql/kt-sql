@@ -23,7 +23,7 @@ class SqlDriver() : Driver() {
 
     // 把自己注册到jdbc driver代码中，这里是延迟加载，还需要优化
     companion object {
-        init {
+        fun register() {
             SqlDriver().register()
         }
     }
@@ -44,9 +44,9 @@ class SqlDriver() : Driver() {
             UnregisteredDriver.JdbcVersion.JDBC_40 ->
                 throw IllegalArgumentException("JDBC version not supported: $jdbcVersion")
             UnregisteredDriver.JdbcVersion.JDBC_41 ->
-                return "me.principality.ktsql.sqlexec.hbase.SqlFactory"
+                return "org.apache.calcite.jdbc.SqlFactory"
             else ->
-                return "me.principality.ktsql.sqlexec.hbase.SqlFactory"
+                return "org.apache.calcite.jdbc.SqlFactory"
         }
     }
 

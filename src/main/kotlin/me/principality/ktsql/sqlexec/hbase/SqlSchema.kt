@@ -48,7 +48,7 @@ import org.apache.calcite.rel.type.RelProtoDataType
  * SqlSchema的实现，参考org.apache.calcite.jdbc.SimpleCalciteSchema
  */
 class SqlSchema : CalciteSchema {
-    protected val remoteTableMap: RemoteNameMap<TableEntry> // 目前只考虑table在多个节点间的同步，这意味着索引也有了
+//    protected val remoteTableMap: RemoteNameMap<TableEntry> // 目前只考虑table在多个节点间的同步，这意味着索引也有了
 
     constructor(parent: CalciteSchema?, schema: Schema?, name: String) :
             this(parent, schema, name, null, null,
@@ -69,7 +69,6 @@ class SqlSchema : CalciteSchema {
                 path: List<List<String>>?) :
             super(parent, schema, name, subSchemaMap, tableMap, latticeMap,
                     typeMap, functionMap, functionNames, nullaryFunctionMap, path) {
-        remoteTableMap = RemoteNameMap<TableEntry>("")
     }
 
     override fun setCache(cache: Boolean) {

@@ -15,7 +15,10 @@ class CalciteTest {
      */
     @Test
     fun testSqlPacketHandler() {
+        SqlUtil.init()
+
         val handler = SqlPacketHandler()
+        val r6 = handler.executeDdl("create index ${TEST_TABLE_INDEX} on ${TEST_TABLE_NAME} (rowkey)")
         val r0 = handler.executeDdl("create table if not exists ${TEST_TABLE_NAME} (rowkey varchar(255))")
 //        val r1 = handler.execute("insert into ${TEST_TABLE_NAME} values ('XXXX')")
         // fixme 下面的update代码无法正常运行
