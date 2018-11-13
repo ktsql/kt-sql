@@ -15,18 +15,13 @@ import java.util.*
 class SqlPacketHandler : PacketHandleHelper {
     private val connectionString = "jdbc:calcite:parserFactory=org.apache.calcite.sql.parser.ddl.SqlDdlParserImpl#FACTORY"
     private val info = ConfigureProvider.getCalciteConfig()
-    private val connection = DriverManager.getConnection(connectionString, info)
+    private val connection = DriverManager.getConnection(connectionString, info) // statement公用，不要关闭
 
     override fun executeQuery(sql: String): Optional<CommandResponsePackets> {
         val statement = connection.createStatement()
         val sets = statement.executeQuery(sql)
-        // fixme 仅用于测试
-        while (sets.next()) {
-            println(sets.getString("rowkey"))
-        }
         val ret = SqlUtil.toResponse(sets)
         sets.close()
-
         statement.close()
         return ret
     }
@@ -34,7 +29,6 @@ class SqlPacketHandler : PacketHandleHelper {
     override fun executeDdl(sql: String): Optional<CommandResponsePackets> {
         val statement = connection.createStatement()
         val sets = statement.executeUpdate(sql)
-
         statement.close()
         return Optional.empty()
     }
@@ -46,14 +40,11 @@ class SqlPacketHandler : PacketHandleHelper {
         val ret = SqlUtil.toResponse(sets)
         sets.close()
         */
-
         statement.close()
         return Optional.empty()
     }
 
     override fun close() {
-        if (!connection.isClosed) {
-            connection.close()
-        }
+        // todo statment到底应该是在一个session里面共用，还是应该每个sql生成一个？
     }
 }

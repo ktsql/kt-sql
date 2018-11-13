@@ -118,5 +118,4 @@ class MySQLHandler : Handler<NetSocket> {
         val packet = EofPacket(++currentSequenceId)
         remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize())).byteBuffer)
     }
-
 }

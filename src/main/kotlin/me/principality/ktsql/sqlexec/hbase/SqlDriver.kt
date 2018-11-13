@@ -2,15 +2,12 @@ package org.apache.calcite.jdbc
 
 import me.principality.ktsql.utils.config.Version
 import org.apache.calcite.avatica.*
-import org.apache.calcite.jdbc.CalciteConnectionImpl
-import org.apache.calcite.jdbc.CalciteMetaImpl
-import org.apache.calcite.jdbc.Driver
 import java.sql.Connection
 import java.sql.SQLException
 import java.util.*
 
 /**
- * 继承Driver，对逻辑进行重写
+ * 继承Driver，对逻辑进行重写 todo 现在还不能运行起来？
  */
 class SqlDriver() : Driver() {
     val CONNECT_STRING_PREFIX = "jdbc:ktsql:"

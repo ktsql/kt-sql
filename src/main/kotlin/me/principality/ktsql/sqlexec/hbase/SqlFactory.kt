@@ -77,8 +77,7 @@ class SqlFactory : AvaticaFactory {
                               firstFrame: Meta.Frame?): AvaticaResultSet {
         val metaData = newResultSetMetaData(statement, signature)
         val calciteSignature = signature as CalcitePrepare.CalciteSignature<*>
-        return CalciteResultSet(statement, calciteSignature, metaData, timeZone,
-                firstFrame)
+        return CalciteResultSet(statement, calciteSignature, metaData, timeZone, firstFrame)
     }
 
     override fun newDatabaseMetaData(connection: AvaticaConnection?): AvaticaSpecificDatabaseMetaData {
