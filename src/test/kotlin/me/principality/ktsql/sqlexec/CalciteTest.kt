@@ -22,7 +22,7 @@ class CalciteTest {
         val r0 = handler.executeDdl("create table if not exists ${TEST_TABLE_NAME} (rowkey varchar(32), rowvalue varchar(255), pos int default 0, primary key (rowkey))")
         val r1 = handler.execute("insert into ${TEST_TABLE_NAME} values ('XXXX', 'XXXV', 1)")
         val r2 = handler.execute("update ${TEST_TABLE_NAME} set value='XXVV' where rowkey='XXXX'") // fixme update代码无法正常运行
-        val r3 = handler.executeQuery("select * from ${TEST_TABLE_NAME}")
+        val r3 = handler.executeQuery("select rowkey, rowvalue from ${TEST_TABLE_NAME} where pos = 1")
         val r4 = handler.execute("delete from ${TEST_TABLE_NAME} where rowkey='XXXX'")
         val r5 = handler.execute("insert into ${TEST_TABLE_NAME} (rowkey, rowvalue) values ('YYYY', 'YYYV', -1)")
         val r6 = handler.executeQuery("select * from ${TEST_TABLE_NAME}")

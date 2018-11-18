@@ -88,8 +88,8 @@ SQL的操作可以拆分为以下几个步骤
 8. Limit (LIMIT).
 9. Merge: Merge two results into one (UNION ALL).
 
-Calcite已经支持把Filter、Project分布式下推到存储节点上，但聚合计算执行的运行空间仍为单核单线程，性能有待提升。
-org.apache.calcite.adapter.enumerable 有内存化计算的实现
+Calcite已经支持把Scan、Filter、Project分布式下推到存储节点上，但Join、Aggregate、Sort计算执行的运行空间仍为单核单线程，
+性能有待提升。org.apache.calcite.adapter.enumerable有内存化计算的实现。
 
 ## 3. Calcite代码笔记
 
