@@ -3,7 +3,6 @@ package org.apache.calcite.jdbc // hack to access java protected function
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.ImmutableSortedSet
-import me.principality.ktsql.utils.collections.RemoteNameMap
 import org.apache.calcite.jdbc.CalciteSchema
 import org.apache.calcite.schema.Function
 import org.apache.calcite.schema.Schema

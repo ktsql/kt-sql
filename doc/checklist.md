@@ -57,7 +57,7 @@ Zookeeper为HBase和Tephra提供高可用服务，建议3台机器
 ### 整体规模
 
 - 前端节点10台服务器（stable）
-- 7台HBase（1.3.x）
+- 7台HBase（2.x）
 - 6台Hadoop构建hdfs（2.7.x）
 - 3台Tephra（0.15+）
 - 3台zookeeper（Version 3.4.3 through 3.4.5）
