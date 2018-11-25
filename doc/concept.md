@@ -10,7 +10,7 @@
 - Scalability
 - High availability
 - Easy to maintain
-- Aggregate UDF
+- Reduce the development cost of distributed/micro-service application
 - Support flexible secondary index
 - Support flexible column data format
-- Reduce the development cost of distributed/micro-service application
+- Aggregate UDF
