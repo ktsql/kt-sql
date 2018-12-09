@@ -29,9 +29,12 @@ Bitmap带来的优越性：索引空间小，部分条件处理只需索引即�
 
 https://github.com/RoaringBitmap/RoaringBitmap roaringbitmap
 https://hexiaoqiao.github.io/blog/2016/11/27/exact-count-and-global-dictionary-of-apache-kylin/ kylin的bitmap
+https://github.com/shunfei/sfmind/blob/master/indexr_white_paper/indexr_white_paper.md indexr的白皮书
+https://blog.bcmeng.com/post/indexr.html indexr的bitmap
 http://hbasefly.com/2018/06/19/timeseries-database-8/ druid的bitmap
-https://blog.csdn.net/xywtalk/article/details/51224161 pinot的bitmap
-https://github.com/shunfei/sfmind/blob/master/indexr_white_paper/indexr_white_paper.md indexr的bitmap
+https://hortonworks.com/blog/apache-hive-druid-part-1-3/ druid性能贴
+http://druid.io/blog/2012/09/21/druid-bitmap-compression.html druid技术文
+https://zhuanlan.zhihu.com/p/20119525 pinot的bitmap
 
 实现的考虑：bitmap的全局编码信息保存在内存中，索引信息保存在存储层
 

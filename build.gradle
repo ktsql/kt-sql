@@ -37,7 +37,7 @@ repositories {
 }
 
 dependencies {
-    // 核心类库
+    // 核心库
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "io.vertx:vertx-core:$vertx_version"
     compile "io.vertx:vertx-lang-kotlin:$vertx_version"
