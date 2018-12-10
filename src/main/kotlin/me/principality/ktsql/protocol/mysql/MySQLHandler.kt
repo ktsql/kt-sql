@@ -54,7 +54,7 @@ class MySQLHandler : Handler<NetSocket> {
         val id = ConnectionIdGenerator.nextId()
         MySQLSessionCache.putConnection(socket.writeHandlerID(), id)
         val handshake = HandshakePacket(id, authorityHelper.authPluginData)
-        socket.write(handshake.writeTo(MySQLPacketPayload(handshake.getPacketSize())).byteBuffer)
+        socket.write(handshake.writeTo(MySQLPacketPayload(handshake.getPacketSize(), handshake.getSequenceId())).byteBuffer)
     }
 
     // TODO need to release payload? think about vertx.buffer carefully

@@ -13,9 +13,13 @@ import java.util.*
 class MySQLPacketPayload {
     val byteBuffer: Buffer
     var position: Int = 0
+    var id: Int = 0
+    var size: Int = 0
 
-    constructor(size: Int) {
-        byteBuffer = Buffer.buffer(size)
+    constructor(size: Int, packetId: Int = 0) {
+        byteBuffer = Buffer.buffer(size + 4)
+        this.size = size
+        this.id = packetId
     }
 
     constructor(buff: Buffer) {

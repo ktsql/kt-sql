@@ -62,6 +62,8 @@ class HandshakePacket : MySQLPacket {
     }
 
     override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+        payload.writeInt3(payload.size)
+        payload.writeInt1(payload.id)
         payload.writeInt1(protocolVersion)
         payload.writeStringNul(serverVersion)
         payload.writeInt4(connectionId)

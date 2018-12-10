@@ -9,7 +9,7 @@ object ServerInfo {
     /**
      * Server version.
      */
-    val SERVER_VERSION = "5.6.0-ChainDB 0.1.0.M1"
+    val SERVER_VERSION = "5.6.0-KtSQL 0.1.0.M1"
 
     /**
      * Charset code 0x21 is utf8_general_ci.
