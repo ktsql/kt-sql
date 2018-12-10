@@ -63,7 +63,7 @@ class MySQLHandler : Handler<NetSocket> {
         val response41 = HandshakeResponse41Packet(payload)
         if (authorityHelper.login(response41.username, response41.authResponse!!)) {
             val packet = OkPacket(response41.getSequenceId() + 1)
-            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize())).byteBuffer)
+            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
             isAuthorized = true
         } else {
             // TODO localhost should replace to real ip address
@@ -71,7 +71,7 @@ class MySQLHandler : Handler<NetSocket> {
                     ServerErrorCode.ER_ACCESS_DENIED_ERROR, response41.username,
                     "localhost",
                     if (0 == response41.authResponse?.size ?: 0) "NO" else "YES")
-            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize())).byteBuffer)
+            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
         }
     }
 
@@ -84,7 +84,7 @@ class MySQLHandler : Handler<NetSocket> {
                 return
             }
             for (each in responses.get().packets) {
-                remoteSocket.write(each.writeTo(MySQLPacketPayload(each.getPacketSize())).byteBuffer)
+                remoteSocket.write(each.writeTo(MySQLPacketPayload(each.getPacketSize(), packet.getSequenceId())).byteBuffer)
             }
             if (packet is QueryCommandPacket
                     && responses.get().getHeaderPacket() !is OkPacket
@@ -93,12 +93,12 @@ class MySQLHandler : Handler<NetSocket> {
             }
         } catch (ex: SQLException) {
             val packet = ErrPacket(++currentSequenceId, ex)
-            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize())).byteBuffer)
+            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
             // CHECKSTYLE:OFF
         } catch (ex: Exception) {
             // CHECKSTYLE:ON
             val packet = ErrPacket(1, ServerErrorCode.ER_STD_UNKNOWN_EXCEPTION, ex.message!!)
-            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize())).byteBuffer)
+            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
         }
     }
 
@@ -113,9 +113,9 @@ class MySQLHandler : Handler<NetSocket> {
         while (queryCommandPacket.next()) {
             val packet = queryCommandPacket.getResultValue()
             currentSequenceId = packet.getSequenceId()
-            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize())).byteBuffer)
+            remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
         }
         val packet = EofPacket(++currentSequenceId)
-        remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize())).byteBuffer)
+        remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
     }
 }

@@ -16,7 +16,7 @@ class MySQLPacketPayload {
     var id: Int = 0
     var size: Int = 0
 
-    constructor(size: Int, packetId: Int = 0) {
+    constructor(size: Int, packetId: Int) {
         byteBuffer = Buffer.buffer(size + 4)
         this.size = size
         this.id = packetId
