@@ -16,6 +16,7 @@ class HandshakeResponse41Packet: MySQLPacket {
         private set
 
     constructor(payload: MySQLPacketPayload) {
+        val size = payload.readInt3()
         sequenceId = payload.readInt1()
         capabilityFlags = payload.readInt4()
         maxPacketSize = payload.readInt4()

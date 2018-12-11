@@ -7,13 +7,13 @@ import java.util.*
 object ConfigureProvider {
     private val info = Properties()
     private val config = ConfigFactory.load()
-    private val loginAuth: LoginAuthority by lazy {
-        val user = config.getString("user")
-        val pass = config.getString("pass")
-        LoginAuthority(user, pass)
-    }
+    private val loginAuth: LoginAuthority
 
     init {
+        val user = config.getString("name")
+        val pass = config.getString("pass")
+        loginAuth = LoginAuthority(user, pass)
+
         val flavor = config.getString("flavor")
         val zkquorum = config.getString("zkquorum")
 

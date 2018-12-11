@@ -156,15 +156,15 @@ class MySQLPacketPayload {
 
     fun readStringFix(length: Int): String {
         val result = ByteArray(length)
+        byteBuffer.getBytes(position, position + length, result)
         position += result.size
-        byteBuffer.getBytes(result)
         return String(result)
     }
 
     fun readStringFixByBytes(length: Int): ByteArray {
         val result = ByteArray(length)
+        byteBuffer.getBytes(position, position + length, result)
         position += result.size
-        byteBuffer.getBytes(result)
         return result
     }
 
@@ -186,27 +186,27 @@ class MySQLPacketPayload {
     }
 
     fun Buffer.bytesBefore(byte: Byte): Int {
-        var index = 0
+        var index = position
         while (this.getByte(index) != byte && index < this.length() ) {
             index++
         }
         if (index > this.length())
             return 0
 
-        return index
+        return index - position
     }
 
     fun readStringNul(): String {
         val result = ByteArray(byteBuffer.bytesBefore(0.toByte()))
+        byteBuffer.getBytes(position, position + result.size, result)
         position += result.size + 1
-        byteBuffer.getBytes(result)
         return String(result)
     }
 
     fun readStringNulByBytes(): ByteArray {
         val result = ByteArray(byteBuffer.bytesBefore(0.toByte()))
+        byteBuffer.getBytes(position, position + result.size, result)
         position += result.size + 1
-        byteBuffer.getBytes(result)
         return result
     }
 

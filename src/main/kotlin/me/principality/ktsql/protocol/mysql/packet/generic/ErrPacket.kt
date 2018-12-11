@@ -21,8 +21,8 @@ class ErrPacket: MySQLPacket {
         this.errorMessage = errorMessage
     }
 
-    constructor(sequenceId: Int, serverErrorCode: ServerErrorCode, vararg errorMessageArguments: Any) {
-        ErrPacket(sequenceId, serverErrorCode.err, serverErrorCode.sqlstate, String.format(serverErrorCode.reason, errorMessageArguments))
+    constructor(sequenceId: Int, serverErrorCode: ServerErrorCode, message: String) {
+        ErrPacket(sequenceId, serverErrorCode.err, serverErrorCode.sqlstate, message)
     }
 
     constructor(sequenceId: Int, cause: SQLException) {
@@ -53,6 +53,8 @@ class ErrPacket: MySQLPacket {
     }
 
     override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+        payload.writeInt3(getPacketSize())
+        payload.writeInt1(sequenceId)
         payload.writeInt1(HEADER)
         payload.writeInt2(errorCode)
         payload.writeStringFix(SQL_STATE_MARKER)

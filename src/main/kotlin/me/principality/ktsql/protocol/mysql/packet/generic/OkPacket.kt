@@ -55,6 +55,8 @@ class OkPacket: MySQLPacket {
     }
 
     override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+        payload.writeInt3(getPacketSize())
+        payload.writeInt1(sequenceId)
         payload.writeInt1(HEADER)
         payload.writeIntLenenc(affectedRows)
         payload.writeIntLenenc(lastInsertId)

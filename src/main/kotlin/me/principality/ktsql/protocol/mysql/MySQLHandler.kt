@@ -47,6 +47,9 @@ class MySQLHandler : Handler<NetSocket> {
                     handleCommand(inBuffer)
                 }
             }
+            socket.closeHandler {
+                logger.debug { "remote socket ${remoteSocket} close" }
+            }
         }
     }
 
@@ -66,11 +69,14 @@ class MySQLHandler : Handler<NetSocket> {
             remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
             isAuthorized = true
         } else {
-            // TODO localhost should replace to real ip address
-            val packet = ErrPacket(response41.getSequenceId() + 1,
-                    ServerErrorCode.ER_ACCESS_DENIED_ERROR, response41.username,
+            // TODO localhost should replace to real ip address?
+            val message = String.format(ServerErrorCode.ER_ACCESS_DENIED_ERROR.reason,
+                    response41.username,
                     "localhost",
                     if (0 == response41.authResponse?.size ?: 0) "NO" else "YES")
+            val packet = ErrPacket(response41.getSequenceId() + 1,
+                    ServerErrorCode.ER_ACCESS_DENIED_ERROR,
+                    message)
             remoteSocket.write(packet.writeTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
         }
     }
