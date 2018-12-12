@@ -20,7 +20,7 @@ class FieldCountPacket: MySQLPacket {
         return 2
     }
 
-    override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+    override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
         payload.writeIntLenenc(columnCount.toLong())
         return payload
     }

@@ -33,7 +33,7 @@ class ComQueryPacket: CommandPacket {
                 + sql.length)
     }
 
-    override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+    override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
         payload.writeInt1(CommandType.COM_QUERY.value)
         payload.writeStringEOF(sql)
         return payload

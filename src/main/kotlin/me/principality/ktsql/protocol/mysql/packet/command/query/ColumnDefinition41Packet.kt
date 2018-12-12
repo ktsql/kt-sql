@@ -87,7 +87,7 @@ class ColumnDefinition41Packet : MySQLPacket {
                 )
     }
 
-    override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+    override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
         payload.writeStringLenenc(CATALOG)
         payload.writeStringLenenc(schema)
         payload.writeStringLenenc(table)

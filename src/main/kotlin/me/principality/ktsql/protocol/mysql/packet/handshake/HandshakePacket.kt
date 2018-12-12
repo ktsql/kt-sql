@@ -48,20 +48,20 @@ class HandshakePacket : MySQLPacket {
 
     override fun getPacketSize(): Int {
         return (1
-                + serverVersion.length
+                + serverVersion.length + 1
                 + 4
-                + authPluginData.authPluginDataPart1.size
+                + authPluginData.authPluginDataPart1.size + 1
                 + 2
                 + 1
                 + 2
                 + 2
                 + 1
                 + 10
-                + authPluginData.authPluginDataPart2.size
+                + authPluginData.authPluginDataPart2.size + 1
                 )
     }
 
-    override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+    override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
         payload.writeInt3(payload.size)
         payload.writeInt1(payload.id)
         payload.writeInt1(protocolVersion)
@@ -76,6 +76,7 @@ class HandshakePacket : MySQLPacket {
         payload.writeReserved(10)
         payload.writeStringNul(String(authPluginData.authPluginDataPart2))
 
+        assert (payload.byteBuffer.length() == payload.size + 4)
         return payload
     }
 }

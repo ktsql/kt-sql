@@ -52,14 +52,16 @@ class ErrPacket: MySQLPacket {
                 )
     }
 
-    override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+    override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
         payload.writeInt3(getPacketSize())
-        payload.writeInt1(sequenceId)
+        payload.writeInt1(payload.id)
         payload.writeInt1(HEADER)
         payload.writeInt2(errorCode)
         payload.writeStringFix(SQL_STATE_MARKER)
         payload.writeStringFix(sqlState)
         payload.writeStringEOF(errorMessage)
+
+        assert (payload.byteBuffer.length() == payload.size + 4)
         return payload
     }
 }

@@ -15,7 +15,7 @@ class OkPacket: MySQLPacket {
     private var info: String = ""
 
     constructor(sequenceId: Int, affectedRows: Long, lastInsertId: Long, warnings: Int, info: String) {
-        this.sequenceId = sequenceId
+        this.sequenceId = sequenceId // https://stackoverflow.com/questions/50805673/kotlin-operator-assignment
         this.affectedRows = affectedRows
         this.lastInsertId = lastInsertId
         this.warnings = warnings
@@ -46,23 +46,25 @@ class OkPacket: MySQLPacket {
 
     override fun getPacketSize(): Int {
         return (1
-                + 4
-                + 4
+                + intLenenc(affectedRows)
+                + intLenenc(lastInsertId)
                 + 2
                 + 2
                 + info.length
                 )
     }
 
-    override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+    override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
         payload.writeInt3(getPacketSize())
-        payload.writeInt1(sequenceId)
+        payload.writeInt1(payload.id)
         payload.writeInt1(HEADER)
         payload.writeIntLenenc(affectedRows)
         payload.writeIntLenenc(lastInsertId)
         payload.writeInt2(STATUS_FLAG)
         payload.writeInt2(warnings)
         payload.writeStringEOF(info)
+
+        assert (payload.byteBuffer.length() == payload.size + 4)
         return payload
     }
 }

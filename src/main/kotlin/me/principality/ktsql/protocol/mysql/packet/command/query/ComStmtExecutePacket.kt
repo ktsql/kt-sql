@@ -23,7 +23,7 @@ class ComStmtExecutePacket: CommandPacket {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun writeTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+    override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

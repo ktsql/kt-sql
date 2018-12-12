@@ -13,5 +13,18 @@ interface MySQLPacket {
 
     fun getPacketSize(): Int
 
-    fun writeTo(payload: MySQLPacketPayload) : MySQLPacketPayload
+    fun transferTo(payload: MySQLPacketPayload) : MySQLPacketPayload
+
+    fun intLenenc(value: Long): Int {
+        if (value < 251) {
+            return 1
+        }
+        if (value < Math.pow(2.0, 16.0)) {
+            return 3
+        }
+        if (value < Math.pow(2.0, 24.0)) {
+            return 5
+        }
+        return 9
+    }
 }
