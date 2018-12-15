@@ -8,7 +8,10 @@ import me.principality.ktsql.protocol.mysql.packet.command.admin.ComQuitPacket
 import me.principality.ktsql.protocol.mysql.packet.command.query.*
 
 object CommandPacketFactory {
-    fun createCommandPacket(sequenceId: Int, connectionId: Int, payload: MySQLPacketPayload): CommandPacket {
+    fun createCommandPacket(sequenceId: Int,
+                            connectionId: Int,
+                            payload: MySQLPacketPayload,
+                            sqlPacketHandler: SqlPacketHandler): CommandPacket {
         val commandPacketTypeValue = payload.readInt1()
         val type = CommandType.valueOf(commandPacketTypeValue)
         when (type) {
@@ -17,13 +20,13 @@ object CommandPacketFactory {
             CommandType.COM_INIT_DB ->
                 return ComInitDbPacket(sequenceId, payload)
             CommandType.COM_FIELD_LIST ->
-                return ComFieldListPacket(sequenceId, connectionId, payload, SqlPacketHandler())
+                return ComFieldListPacket(sequenceId, connectionId, payload, sqlPacketHandler)
             CommandType.COM_QUERY ->
-                return ComQueryPacket(sequenceId, connectionId, payload, SqlPacketHandler())
+                return ComQueryPacket(sequenceId, connectionId, payload, sqlPacketHandler)
             CommandType.COM_STMT_PREPARE ->
                 return ComStmtPreparePacket(sequenceId, payload)
             CommandType.COM_STMT_EXECUTE ->
-                return ComStmtExecutePacket(sequenceId, connectionId, payload, SqlPacketHandler())
+                return ComStmtExecutePacket(sequenceId, connectionId, payload, sqlPacketHandler)
             CommandType.COM_STMT_CLOSE ->
                 return ComStmtClosePacket(sequenceId, payload)
             CommandType.COM_PING ->

@@ -24,15 +24,15 @@ Row column mixed
 - HBase
 - tera
 - hypertable
-- PaxosStore
-- Pegasus
-- Kudu
-- TiKV
 
 KV-store实现方案，参考：
 - ssdb
 - ledisdb
 - ardb
+- PaxosStore
+- Pegasus
+- Kudu
+- TiKV
 
 ### 异步的HBase客户端
 

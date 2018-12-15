@@ -216,9 +216,9 @@ class MySQLPacketPayload {
     }
 
     fun readStringEOF(): String {
-        val result = ByteArray(byteBuffer.length())
+        val result = ByteArray(byteBuffer.length() - position)
+        byteBuffer.getBytes(position, byteBuffer.length(), result)
         position += result.size
-        byteBuffer.getBytes(result)
         return String(result)
     }
 

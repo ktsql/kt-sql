@@ -33,6 +33,7 @@ class MySQLHandler : Handler<NetSocket> {
     private val authorityHelper = AuthorityHelper()
     private lateinit var remoteSocket: NetSocket
     private var currentSequenceId: Int = 0
+    private val sqlPackerHandler = SqlPacketHandler()
 
     override fun handle(socket: NetSocket?) {
         logger.info("${socket?.remoteAddress() ?: "invalid socket"}")
@@ -86,8 +87,8 @@ class MySQLHandler : Handler<NetSocket> {
     private fun handleCommand(buffer: Buffer) {
         try {
             val payload = MySQLPacketPayload(buffer)
-            val packet = getCommandPakcet(payload)
-            val responses = packet.execute(SqlPacketHandler())
+            val packet = getCommandPakcet(payload, sqlPackerHandler)
+            val responses = packet.execute(sqlPackerHandler)
             if (!responses.isPresent()) {
                 return
             }
@@ -100,20 +101,23 @@ class MySQLHandler : Handler<NetSocket> {
                 writeMoreResults(packet as QueryCommandPacket, responses.get().packets.size)
             }
         } catch (ex: SQLException) {
+            // CHECKSTYLE:OFF
+            logger.debug { ex }
             val packet = ErrPacket(++currentSequenceId, ex)
             remoteSocket.write(packet.transferTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
-            // CHECKSTYLE:OFF
         } catch (ex: Exception) {
             // CHECKSTYLE:ON
+            logger.debug(ex.message, ex)// { ex }
             val packet = ErrPacket(1, ServerErrorCode.ER_STD_UNKNOWN_EXCEPTION, ex.message!!)
             remoteSocket.write(packet.transferTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
         }
     }
 
-    private fun getCommandPakcet(payload: MySQLPacketPayload): CommandPacket {
+    private fun getCommandPakcet(payload: MySQLPacketPayload, sqlPackerHandler: SqlPacketHandler): CommandPacket {
+        val packetSize = payload.readInt3()
         val sequenceId = payload.readInt1()
         val connectionId = MySQLSessionCache.getConnection(remoteSocket.writeHandlerID())
-        return CommandPacketFactory.createCommandPacket(sequenceId, connectionId, payload)
+        return CommandPacketFactory.createCommandPacket(sequenceId, connectionId, payload, sqlPackerHandler)
     }
 
     private fun writeMoreResults(queryCommandPacket: QueryCommandPacket, headPacketsCount: Int) {
