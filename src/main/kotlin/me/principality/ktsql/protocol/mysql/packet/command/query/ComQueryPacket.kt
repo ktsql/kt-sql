@@ -18,9 +18,10 @@ class ComQueryPacket: CommandPacket {
         this.sqlexecHandler = handler
     }
 
+    /**
+     * MySQL的系统参数查询，calcite并不支持，所以在这里要做特殊处理。
+     */
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
-        TODO("not implemented")
-
         return helper.executeQuery(sql)
     }
 

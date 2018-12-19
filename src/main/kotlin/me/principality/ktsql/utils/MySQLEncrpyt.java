@@ -1,7 +1,10 @@
-package me.principality.ktsql.utils.config;
+package me.principality.ktsql.utils;
 
 import me.principality.ktsql.protocol.mysql.helper.AuthPluginData;
 import org.apache.commons.codec.digest.DigestUtils;
+
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
 
 /**
  * MySQL密码加密方法
@@ -27,6 +30,13 @@ public class MySQLEncrpyt {
     }
 
     public static byte[] sha1(String s) {
-        return DigestUtils.sha1(s);
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            digest.update(s.getBytes(Charset.forName("UTF-8")));
+
+            return digest.digest();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

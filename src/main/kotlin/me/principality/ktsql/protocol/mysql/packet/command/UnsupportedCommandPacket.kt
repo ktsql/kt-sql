@@ -14,18 +14,18 @@ class UnsupportedCommandPacket: CommandPacket {
     }
 
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 
     override fun getSequenceId(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 
     override fun getPacketSize(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 
     override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 }

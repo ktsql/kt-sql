@@ -7,6 +7,8 @@ buildscript {
     ext.tephra_version = '0.15.0-incubating'
     ext.kotlinlogging_version = '1.5.6'
     ext.config4k_version = '0.3.4'
+    ext.jparsec_version = '3.0'
+    ext.parboiled_version = '1.1.8'
 
     repositories {
         mavenCentral()
@@ -50,6 +52,7 @@ dependencies {
     compile files('../kt-sql-hbase-ex/build/libs/kt-sql-hbase-ex-1.0-SNAPSHOT.jar')
     compile files('../calcite/server/target/calcite-server-1.18.0-SNAPSHOT.jar')
     compile group: 'org.apache.hbase', name: 'hbase-client', version: "$hbaseclient_version"
+    compile group: 'org.parboiled', name: 'parboiled-java', version: "$parboiled_version"
     compile "org.apache.tephra:tephra-api:$tephra_version"
     compile "org.apache.tephra:tephra-core:$tephra_version"
     compile "org.apache.tephra:tephra-hbase-compat-2.0:$tephra_version"
@@ -61,6 +64,7 @@ dependencies {
     testCompile group: 'mysql', name: 'mysql-connector-java', version: '5.1.47'
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     testCompile "junit:junit:4.12"
+    testCompile group: 'org.jparsec', name: 'jparsec', version: "$jparsec_version"
 }
 
 compileKotlin {

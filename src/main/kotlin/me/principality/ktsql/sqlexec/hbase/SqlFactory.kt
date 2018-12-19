@@ -5,9 +5,6 @@ package org.apache.calcite.jdbc
 import me.principality.ktsql.utils.config.Version
 import org.apache.calcite.adapter.java.JavaTypeFactory
 import org.apache.calcite.avatica.*
-import org.apache.calcite.jdbc.CalciteConnectionImpl
-import org.apache.calcite.jdbc.CalciteStatement
-import org.apache.calcite.jdbc.SqlSchema
 import java.io.InputStream
 import java.io.Reader
 import java.sql.*
