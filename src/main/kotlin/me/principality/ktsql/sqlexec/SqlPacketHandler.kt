@@ -3,6 +3,7 @@ package me.principality.ktsql.sqlexec
 import me.principality.ktsql.protocol.mysql.helper.PacketHandleHelper
 import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
 import me.principality.ktsql.utils.config.ConfigureProvider
+import mu.KotlinLogging
 import java.sql.DriverManager
 import java.util.*
 
@@ -13,6 +14,7 @@ import java.util.*
  * 虽然有calcite内部api，但使用jdbc api有助于接口的规范化。
  */
 class SqlPacketHandler : PacketHandleHelper {
+    private val logger = KotlinLogging.logger {}
     private val connectionString = "jdbc:calcite:parserFactory=org.apache.calcite.sql.parser.ddl.SqlDdlParserImpl#FACTORY"
     private val info = ConfigureProvider.getCalciteConfig()
     private val connection = DriverManager.getConnection(connectionString, info) // statement公用，不要关闭

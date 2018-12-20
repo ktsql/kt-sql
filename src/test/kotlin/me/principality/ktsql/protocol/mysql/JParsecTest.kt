@@ -1,5 +1,6 @@
 package me.principality.ktsql.protocol.mysql
 
+import me.principality.ktsql.utils.SelectParamParser2
 import org.jparsec.Parser
 import org.jparsec.Terminals
 import org.jparsec.Scanners
@@ -27,16 +28,33 @@ class JParsecTest {
     private val IGNORED = Parsers.or(Scanners.JAVA_BLOCK_COMMENT, Scanners.WHITESPACES)
 
     /**
-     * JParsec的API不够直观，容易带偏思维
+     * JParsec的API不够直观，容易带偏思维，但从性能上来看，初始化的时间JParsec比Parboiled要少很多
      */
     @Test
     fun testParser() {
+        val t1 = System.nanoTime()
         val parser = expression(Terminals.Identifier.PARSER as Parser<Any>)
+        val t2 = System.nanoTime()
+
         val result = parser
                 .from(TOKENIZER, IGNORED.skipMany())
                 .parse("SELECT /*this is a comment*/ @@a AS a, @@b as b")
+        val t3 = System.nanoTime()
+
+        println(t2 - t1)
+        println(t3 - t2)
 
         println(result)
+    }
+
+    @Test
+    fun testParse2() {
+        val parser = SelectParamParser2()
+        val list = parser.parse("SELECT /*this is a comment*/ @@a AS a, @@b as b")
+
+        if (list.isNotEmpty()) {
+            println(list)
+        }
     }
 
     fun identifier1(expr: Parser<Any>): Parser<Any> {
