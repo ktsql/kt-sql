@@ -41,6 +41,8 @@ class HandshakeResponse41Packet: MySQLPacket {
     }
 
     override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+        payload.writeInt3(getPacketSize())
+        payload.writeInt1(payload.id)
         payload.writeInt4(capabilityFlags)
         payload.writeInt4(maxPacketSize)
         payload.writeInt1(characterSet)

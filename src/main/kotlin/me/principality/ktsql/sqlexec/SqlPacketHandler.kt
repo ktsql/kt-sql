@@ -12,6 +12,8 @@ import java.util.*
  *
  * calcite采用jdbc api对外提供访问的接口，此处为使用方法示例。
  * 虽然有calcite内部api，但使用jdbc api有助于接口的规范化。
+ *
+ * 到了这里的sql，都是Calcite可以处理的SQL，那些需要特殊支持的都已经被过滤掉了
  */
 class SqlPacketHandler : PacketHandleHelper {
     private val logger = KotlinLogging.logger {}

@@ -3,7 +3,6 @@ package me.principality.ktsql.protocol.mysql.helper
 import com.google.common.base.Strings
 import me.principality.ktsql.utils.config.ConfigureProvider
 import org.apache.commons.codec.digest.DigestUtils
-import java.util.*
 import kotlin.experimental.xor
 
 class AuthorityHelper {
@@ -14,7 +13,7 @@ class AuthorityHelper {
         return if (Strings.isNullOrEmpty(proxyAuthority.password)) {
             proxyAuthority.username.equals(username)
         } else {
-            proxyAuthority.username.equals(username) && Arrays.equals(getAuthCipherBytes(proxyAuthority.password), authResponse)
+            proxyAuthority.username.equals(username) && MySQLEncrpyt.isPassEqual(proxyAuthority.password, authResponse, authPluginData)
         }
     }
 

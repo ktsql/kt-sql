@@ -1,4 +1,4 @@
-package me.principality.ktsql.utils
+package me.principality.ktsql.protocol.mysql.helper
 
 import org.parboiled.MatcherContext
 import org.parboiled.matchers.CustomMatcher

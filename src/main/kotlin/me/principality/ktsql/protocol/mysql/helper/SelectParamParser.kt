@@ -1,4 +1,4 @@
-package me.principality.ktsql.utils
+package me.principality.ktsql.protocol.mysql.helper
 
 import org.parboiled.BaseParser
 import org.parboiled.Rule
@@ -13,6 +13,7 @@ import org.parboiled.annotations.BuildParseTree
  * a <- @@identifier
  * b <- identifier
  *
+ * parboiled需要把生成的值推送到stack中
  */
 @BuildParseTree
 internal open class SelectParamParser : BaseParser<Any>() {

@@ -5,7 +5,7 @@ import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
 import me.principality.ktsql.protocol.mysql.packet.command.CommandPacket
 import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
 import me.principality.ktsql.protocol.mysql.packet.command.CommandType
-import me.principality.ktsql.utils.SelectParamParser2
+import me.principality.ktsql.protocol.mysql.helper.SelectParamParser2
 import java.util.*
 
 class ComQueryPacket : CommandPacket {

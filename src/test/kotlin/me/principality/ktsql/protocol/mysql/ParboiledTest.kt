@@ -1,10 +1,9 @@
 package me.principality.ktsql.protocol.mysql
 
-import me.principality.ktsql.utils.SelectParamParser
+import me.principality.ktsql.protocol.mysql.helper.SelectParamParser
 import org.junit.Test
 import org.parboiled.Parboiled
 import org.parboiled.parserunners.BasicParseRunner
-import org.parboiled.parserunners.TracingParseRunner
 import org.parboiled.support.ParseTreeUtils
 import org.parboiled.support.ParsingResult
 

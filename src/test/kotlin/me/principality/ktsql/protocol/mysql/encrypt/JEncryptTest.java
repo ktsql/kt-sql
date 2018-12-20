@@ -1,7 +1,7 @@
 package me.principality.ktsql.protocol.mysql.encrypt;
 
 import me.principality.ktsql.protocol.mysql.helper.AuthPluginData;
-import me.principality.ktsql.utils.MySQLEncrpyt;
+import me.principality.ktsql.protocol.mysql.helper.MySQLEncrpyt;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Test;
 

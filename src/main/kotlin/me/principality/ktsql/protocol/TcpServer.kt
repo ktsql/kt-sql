@@ -44,6 +44,6 @@ class TcpServer(vx: Vertx, host: String, port: Int) {
             }
         }
 
-        HBaseConnection.close() // 释放远端的连接
+        SqlUtil.unInit()
     }
 }

@@ -1,6 +1,6 @@
 package me.principality.ktsql.protocol.mysql
 
-import me.principality.ktsql.utils.SelectParamParser2
+import me.principality.ktsql.protocol.mysql.helper.SelectParamParser2
 import org.jparsec.Parser
 import org.jparsec.Terminals
 import org.jparsec.Scanners

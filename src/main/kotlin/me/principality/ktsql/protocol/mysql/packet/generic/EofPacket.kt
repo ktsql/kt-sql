@@ -39,6 +39,8 @@ class EofPacket: MySQLPacket {
     }
 
     override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
+        payload.writeInt3(getPacketSize())
+        payload.writeInt1(payload.id)
         payload.writeInt1(HEADER)
         payload.writeInt2(warnings)
         payload.writeInt2(statusFlags)
