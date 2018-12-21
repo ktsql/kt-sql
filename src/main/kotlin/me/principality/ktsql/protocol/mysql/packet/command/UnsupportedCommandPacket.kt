@@ -2,9 +2,14 @@ package me.principality.ktsql.protocol.mysql.packet.command
 
 import me.principality.ktsql.protocol.mysql.helper.PacketHandleHelper
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
+import me.principality.ktsql.protocol.mysql.packet.constant.ServerErrorCode
+import me.principality.ktsql.protocol.mysql.packet.generic.ErrPacket
 import java.util.*
 
-class UnsupportedCommandPacket: CommandPacket {
+/**
+ * 所有的不支持的命令，都生成不支持的packet
+ */
+class UnsupportedCommandPacket : CommandPacket {
     private val sequenceId: Int
     private val type: CommandType
 
@@ -14,11 +19,13 @@ class UnsupportedCommandPacket: CommandPacket {
     }
 
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
-        TODO("not implemented")
+        val message = String.format(ServerErrorCode.ER_UNSUPPORTED_COMMAND.reason, type.toString())
+        return Optional.of(CommandResponsePackets(
+                ErrPacket(getSequenceId() + 1, ServerErrorCode.ER_UNSUPPORTED_COMMAND, message)))
     }
 
     override fun getSequenceId(): Int {
-        TODO("not implemented")
+        return sequenceId
     }
 
     override fun getPacketSize(): Int {

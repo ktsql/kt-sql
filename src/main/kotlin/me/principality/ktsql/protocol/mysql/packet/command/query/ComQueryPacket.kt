@@ -2,11 +2,11 @@ package me.principality.ktsql.protocol.mysql.packet.command.query
 
 import me.principality.ktsql.protocol.mysql.helper.PacketHandleHelper
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
-import me.principality.ktsql.protocol.mysql.packet.command.CommandPacket
 import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
 import me.principality.ktsql.protocol.mysql.packet.command.CommandType
 import me.principality.ktsql.protocol.mysql.helper.SelectParamParser2
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
+import me.principality.ktsql.sqlexec.SqlUtil
 import java.util.*
 
 /**
@@ -15,13 +15,14 @@ import java.util.*
 class ComQueryPacket : QueryCommandPacket {
     private val sequenceId: Int
     private val sql: String
-    private val sqlexecHandler: PacketHandleHelper
+    private val sqlExecHandler: PacketHandleHelper
     private val parser: SelectParamParser2
+    private val resultSetRowPackets: List<TextResultSetRowPacket> = listOf()
 
     constructor(sequenceId: Int, connectionId: Int, payload: MySQLPacketPayload, handler: PacketHandleHelper) {
         this.sequenceId = sequenceId
         this.sql = payload.readStringEOF()
-        this.sqlexecHandler = handler
+        this.sqlExecHandler = handler
         this.parser = SelectParamParser2()
     }
 
@@ -33,10 +34,12 @@ class ComQueryPacket : QueryCommandPacket {
             val result = parser.parse(sql)
             if (result.isNotEmpty()) {
                 // 对select @@a as a进行处理
+                // 1. 生成返回的表头CommandResponsePackets
+                // 2. 把数据保存到resultSetRowPackets
             }
         }
 
-        return helper.executeQuery(sql)
+        return SqlUtil.toResponse(helper.executeQuery(sql))
     }
 
     override fun next(): Boolean {

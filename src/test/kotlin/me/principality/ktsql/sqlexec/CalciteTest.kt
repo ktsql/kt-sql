@@ -50,6 +50,14 @@ class CalciteTest {
     }
 
     @Test
+    fun testSetOption() {
+        SqlUtil.init()
+
+        val handler = SqlExecuteHandler()
+        val r0 = handler.execute("set names = utf8") // 不支持set option
+    }
+
+    @Test
     fun testMetaInit() {
         lateinit var connection: Connection
         lateinit var tableMetas: ResultSet

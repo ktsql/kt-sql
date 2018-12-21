@@ -85,12 +85,22 @@ class MySQLHandler : Handler<NetSocket> {
     }
 
     private fun handleCommand(buffer: Buffer) {
+        /**
+         * 根据传过来的命令，进行命令分发
+         */
+        fun getCommandPakcet(payload: MySQLPacketPayload, sqlPackerHandler: SqlExecuteHandler): CommandPacket {
+            val packetSize = payload.readInt3()
+            val sequenceId = payload.readInt1()
+            val connectionId = MySQLSessionCache.getConnection(remoteSocket.writeHandlerID())
+            return CommandPacketFactory.createCommandPacket(sequenceId, connectionId, payload, sqlPackerHandler)
+        }
+
         try {
             val payload = MySQLPacketPayload(buffer)
             val packet = getCommandPakcet(payload, sqlExecHandler)
             val responses = packet.execute(sqlExecHandler)
             if (!responses.isPresent()) {
-                return
+                return // 这里按理不应该有空的情况
             }
             for (each in responses.get().packets) {
                 remoteSocket.write(each.transferTo(MySQLPacketPayload(each.getPacketSize(), packet.getSequenceId())).byteBuffer)
@@ -113,13 +123,9 @@ class MySQLHandler : Handler<NetSocket> {
         }
     }
 
-    private fun getCommandPakcet(payload: MySQLPacketPayload, sqlPackerHandler: SqlExecuteHandler): CommandPacket {
-        val packetSize = payload.readInt3()
-        val sequenceId = payload.readInt1()
-        val connectionId = MySQLSessionCache.getConnection(remoteSocket.writeHandlerID())
-        return CommandPacketFactory.createCommandPacket(sequenceId, connectionId, payload, sqlPackerHandler)
-    }
-
+    /**
+     * 从查询结果中逐行读取记录，并转换为可以写往目标客户端的字节流
+     */
     private fun writeMoreResults(queryCommandPacket: QueryCommandPacket, headPacketsCount: Int) {
         currentSequenceId = headPacketsCount
         while (queryCommandPacket.next()) {
