@@ -8,6 +8,21 @@ import me.principality.ktsql.protocol.mysql.packet.constant.ServerInfo
 import java.sql.ResultSetMetaData
 import java.sql.SQLException
 
+/**
+ * string<lenenc> catalog (always 'def')
+ * string<lenenc> schema
+ * string<lenenc> table alias
+ * string<lenenc> table
+ * string<lenenc> column alias
+ * string<lenenc> column
+ * int<lenenc> length of fixed fields (=0xC)
+ * int<2> character set number
+ * int<4> max. column size
+ * int<1> Field types
+ * int<2> Field detail flag
+ * int<1> decimals
+ * int<2> - unused -
+ */
 class ColumnDefinition41Packet : MySQLPacket {
     private val CATALOG = "def"
     private val NEXT_LENGTH: Long = 0x0c

@@ -1,18 +1,24 @@
 package me.principality.ktsql.protocol.mysql.packet.command.query
 
-import me.principality.ktsql.protocol.mysql.helper.PacketHandleHelper
+import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
-import me.principality.ktsql.protocol.mysql.packet.command.CommandPacket
-import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
 import java.util.*
 
-class TextResultSetRowPacket: CommandPacket {
-    override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
-        TODO("not implemented")
+class TextResultSetRowPacket : MySQLPacket {
+    private val NULL = 0xfb
+    private var sequenceId: Int
+    private var data: MutableList<Any>
+
+    constructor(payload: MySQLPacketPayload, columnCount: Int) {
+        sequenceId = payload.readInt1()
+        data = ArrayList(columnCount)
+        for (i in 0 until columnCount) {
+            data.add(payload.readStringLenenc())
+        }
     }
 
     override fun getSequenceId(): Int {
-        TODO("not implemented")
+        return sequenceId
     }
 
     override fun getPacketSize(): Int {
@@ -20,6 +26,17 @@ class TextResultSetRowPacket: CommandPacket {
     }
 
     override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
-        TODO("not implemented")
+        for (each in data) {
+            if (null == each) {
+                payload.writeInt1(NULL)
+            } else {
+                if (each is ByteArray) {
+                    payload.writeBytesLenenc(each)
+                } else {
+                    payload.writeStringLenenc(each.toString())
+                }
+            }
+        }
+        return payload
     }
 }

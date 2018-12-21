@@ -6,7 +6,7 @@ import me.principality.ktsql.protocol.mysql.packet.command.CommandPacket
 import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
 import java.util.*
 
-class ComPingPacket: CommandPacket {
+class ComPingPacket : CommandPacket {
     private val sequenceId: Int
 
     constructor(sequenceId: Int) {
@@ -14,7 +14,7 @@ class ComPingPacket: CommandPacket {
     }
 
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 
     override fun getSequenceId(): Int {
@@ -22,10 +22,10 @@ class ComPingPacket: CommandPacket {
     }
 
     override fun getPacketSize(): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 
     override fun transferTo(payload: MySQLPacketPayload): MySQLPacketPayload {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 }

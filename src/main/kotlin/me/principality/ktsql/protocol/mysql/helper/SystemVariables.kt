@@ -4,6 +4,7 @@ package me.principality.ktsql.protocol.mysql.helper
  * 模拟并返回客户端感兴趣的MySQL系统参数
  *
  * http://www.cnblogs.com/maobuji/p/9143794.html
+ * https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
  */
 object SystemVariables {
     val keyvalueMap = HashMap<String, Any>()

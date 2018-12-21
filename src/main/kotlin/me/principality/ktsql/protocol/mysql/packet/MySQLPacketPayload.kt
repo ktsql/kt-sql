@@ -154,6 +154,15 @@ class MySQLPacketPayload {
         byteBuffer.appendBytes(value.toByteArray())
     }
 
+    fun writeBytesLenenc(value: ByteArray) {
+        if (0 == value.size) {
+            byteBuffer.appendByte(0)
+            return
+        }
+        writeIntLenenc(value.size.toLong())
+        byteBuffer.appendBytes(value)
+    }
+
     fun readStringFix(length: Int): String {
         val result = ByteArray(length)
         byteBuffer.getBytes(position, position + length, result)

@@ -2,6 +2,7 @@ package me.principality.ktsql.protocol.mysql.packet
 
 /**
  * https://mariadb.com/kb/en/library/0-packet/
+ * https://dev.mysql.com/doc/internals/en/client-server-protocol.html
  */
 interface MySQLPacket {
     companion object {

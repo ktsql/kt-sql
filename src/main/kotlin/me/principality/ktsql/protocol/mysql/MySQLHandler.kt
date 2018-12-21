@@ -3,7 +3,7 @@ package me.principality.ktsql.protocol.mysql
 import io.vertx.core.Handler
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.net.NetSocket
-import me.principality.ktsql.sqlexec.SqlPacketHandler
+import me.principality.ktsql.sqlexec.SqlExecuteHandler
 import me.principality.ktsql.protocol.mysql.helper.AuthorityHelper
 import me.principality.ktsql.protocol.mysql.helper.ConnectionIdGenerator
 import me.principality.ktsql.protocol.mysql.helper.MySQLSessionCache
@@ -33,7 +33,7 @@ class MySQLHandler : Handler<NetSocket> {
     private val authorityHelper = AuthorityHelper()
     private lateinit var remoteSocket: NetSocket
     private var currentSequenceId: Int = 0
-    private val sqlPackerHandler = SqlPacketHandler()
+    private val sqlExecHandler = SqlExecuteHandler()
 
     override fun handle(socket: NetSocket?) {
         logger.info("${socket?.remoteAddress() ?: "invalid socket"}")
@@ -87,8 +87,8 @@ class MySQLHandler : Handler<NetSocket> {
     private fun handleCommand(buffer: Buffer) {
         try {
             val payload = MySQLPacketPayload(buffer)
-            val packet = getCommandPakcet(payload, sqlPackerHandler)
-            val responses = packet.execute(sqlPackerHandler)
+            val packet = getCommandPakcet(payload, sqlExecHandler)
+            val responses = packet.execute(sqlExecHandler)
             if (!responses.isPresent()) {
                 return
             }
@@ -113,7 +113,7 @@ class MySQLHandler : Handler<NetSocket> {
         }
     }
 
-    private fun getCommandPakcet(payload: MySQLPacketPayload, sqlPackerHandler: SqlPacketHandler): CommandPacket {
+    private fun getCommandPakcet(payload: MySQLPacketPayload, sqlPackerHandler: SqlExecuteHandler): CommandPacket {
         val packetSize = payload.readInt3()
         val sequenceId = payload.readInt1()
         val connectionId = MySQLSessionCache.getConnection(remoteSocket.writeHandlerID())

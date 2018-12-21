@@ -6,9 +6,13 @@ import me.principality.ktsql.protocol.mysql.packet.command.CommandPacket
 import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
 import me.principality.ktsql.protocol.mysql.packet.command.CommandType
 import me.principality.ktsql.protocol.mysql.helper.SelectParamParser2
+import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
 import java.util.*
 
-class ComQueryPacket : CommandPacket {
+/**
+ * https://dev.mysql.com/doc/internals/en/com-query.html#packet-COM_QUERY
+ */
+class ComQueryPacket : QueryCommandPacket {
     private val sequenceId: Int
     private val sql: String
     private val sqlexecHandler: PacketHandleHelper
@@ -33,6 +37,14 @@ class ComQueryPacket : CommandPacket {
         }
 
         return helper.executeQuery(sql)
+    }
+
+    override fun next(): Boolean {
+        TODO("not implemented")
+    }
+
+    override fun getResultValue(): MySQLPacket {
+        TODO("not implemented")
     }
 
     override fun getSequenceId(): Int {

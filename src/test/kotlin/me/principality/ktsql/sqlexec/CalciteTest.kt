@@ -18,7 +18,7 @@ class CalciteTest {
     fun testSqlPacketHandler() {
         SqlUtil.init()
 
-        val handler = SqlPacketHandler()
+        val handler = SqlExecuteHandler()
         val r0 = handler.executeDdl("create table if not exists ${TEST_TABLE_NAME} (rowkey varchar(32), rowvalue varchar(255), pos int default 0, primary key (rowkey))")
         val r1 = handler.execute("insert into ${TEST_TABLE_NAME} values ('XXXX', 'XXXV', 1)")
         val r2 = handler.execute("update ${TEST_TABLE_NAME} set rowvalue='XXVV', pos=3 where pos > 0") // fixme update代码无法正常运行
@@ -34,7 +34,7 @@ class CalciteTest {
     fun testIndexTable() {
         SqlUtil.init()
 
-        val handler = SqlPacketHandler()
+        val handler = SqlExecuteHandler()
         val r0 = handler.executeDdl("create table if not exists ${TEST_TABLE_NAME} (rowkey varchar(32), rowvalue varchar(255), pos int default 0, primary key (rowkey))")
         val r1 = handler.executeDdl("create index ${TEST_TABLE_INDEX} on ${TEST_TABLE_NAME} (rowvalue)")
         val r2 = handler.execute("insert into ${TEST_TABLE_NAME} (rowkey, rowvalue, pos) values ('YYYY', 'YYYV', 2)")

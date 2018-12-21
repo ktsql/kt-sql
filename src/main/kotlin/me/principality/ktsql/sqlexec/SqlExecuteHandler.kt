@@ -5,6 +5,7 @@ import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePacket
 import me.principality.ktsql.utils.config.ConfigureProvider
 import mu.KotlinLogging
 import java.sql.DriverManager
+import java.sql.ResultSet
 import java.util.*
 
 /**
@@ -15,37 +16,31 @@ import java.util.*
  *
  * 到了这里的sql，都是Calcite可以处理的SQL，那些需要特殊支持的都已经被过滤掉了
  */
-class SqlPacketHandler : PacketHandleHelper {
+class SqlExecuteHandler : PacketHandleHelper {
     private val logger = KotlinLogging.logger {}
     private val connectionString = "jdbc:calcite:parserFactory=org.apache.calcite.sql.parser.ddl.SqlDdlParserImpl#FACTORY"
     private val info = ConfigureProvider.getCalciteConfig()
     private val connection = DriverManager.getConnection(connectionString, info) // statement公用，不要关闭
 
-    override fun executeQuery(sql: String): Optional<CommandResponsePackets> {
+    override fun executeQuery(sql: String): ResultSet {
         val statement = connection.createStatement()
         val sets = statement.executeQuery(sql)
-        val ret = SqlUtil.toResponse(sets)
-        sets.close()
+        statement.close()
+        return sets
+    }
+
+    override fun executeDdl(sql: String): Int {
+        val statement = connection.createStatement()
+        val ret = statement.executeUpdate(sql)
         statement.close()
         return ret
     }
 
-    override fun executeDdl(sql: String): Optional<CommandResponsePackets> {
+    override fun execute(sql: String): Boolean {
         val statement = connection.createStatement()
-        val sets = statement.executeUpdate(sql)
+        val ret = statement.execute(sql)
         statement.close()
-        return Optional.empty()
-    }
-
-    override fun execute(sql: String): Optional<CommandResponsePackets> {
-        val statement = connection.createStatement()
-        val sets = statement.execute(sql)
-        /*
-        val ret = SqlUtil.toResponse(sets)
-        sets.close()
-        */
-        statement.close()
-        return Optional.empty()
+        return ret
     }
 
     override fun close() {

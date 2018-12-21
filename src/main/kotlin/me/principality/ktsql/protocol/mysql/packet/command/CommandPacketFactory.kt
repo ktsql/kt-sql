@@ -1,6 +1,6 @@
 package me.principality.ktsql.protocol.mysql.packet.command
 
-import me.principality.ktsql.sqlexec.SqlPacketHandler
+import me.principality.ktsql.sqlexec.SqlExecuteHandler
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
 import me.principality.ktsql.protocol.mysql.packet.command.admin.ComInitDbPacket
 import me.principality.ktsql.protocol.mysql.packet.command.admin.ComPingPacket
@@ -11,7 +11,7 @@ object CommandPacketFactory {
     fun createCommandPacket(sequenceId: Int,
                             connectionId: Int,
                             payload: MySQLPacketPayload,
-                            sqlPacketHandler: SqlPacketHandler): CommandPacket {
+                            sqlExecuteHandler: SqlExecuteHandler): CommandPacket {
         val commandPacketTypeValue = payload.readInt1()
         val type = CommandType.valueOf(commandPacketTypeValue)
         when (type) {
@@ -20,13 +20,13 @@ object CommandPacketFactory {
             CommandType.COM_INIT_DB ->
                 return ComInitDbPacket(sequenceId, payload)
             CommandType.COM_FIELD_LIST ->
-                return ComFieldListPacket(sequenceId, connectionId, payload, sqlPacketHandler)
+                return ComFieldListPacket(sequenceId, connectionId, payload, sqlExecuteHandler)
             CommandType.COM_QUERY ->
-                return ComQueryPacket(sequenceId, connectionId, payload, sqlPacketHandler)
+                return ComQueryPacket(sequenceId, connectionId, payload, sqlExecuteHandler)
             CommandType.COM_STMT_PREPARE ->
                 return ComStmtPreparePacket(sequenceId, payload)
             CommandType.COM_STMT_EXECUTE ->
-                return ComStmtExecutePacket(sequenceId, connectionId, payload, sqlPacketHandler)
+                return ComStmtExecutePacket(sequenceId, connectionId, payload, sqlExecuteHandler)
             CommandType.COM_STMT_CLOSE ->
                 return ComStmtClosePacket(sequenceId, payload)
             CommandType.COM_PING ->

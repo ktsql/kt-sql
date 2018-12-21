@@ -3,7 +3,7 @@ package me.principality.ktsql.protocol.mysql.packet.command.query
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
 
-class FieldCountPacket: MySQLPacket {
+class ColumnCountPacket: MySQLPacket {
     private val sequenceId: Int
     private val columnCount: Int
 

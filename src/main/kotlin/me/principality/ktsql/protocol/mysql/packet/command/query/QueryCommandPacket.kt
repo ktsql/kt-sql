@@ -4,6 +4,9 @@ import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
 import me.principality.ktsql.protocol.mysql.packet.command.CommandPacket
 import java.sql.SQLException
 
+/**
+ * 对查询结果做特殊的处理，实现查询结果的缓存和遍历
+ */
 interface QueryCommandPacket: CommandPacket {
     /**
      * Goto next result value.

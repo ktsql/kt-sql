@@ -1,17 +1,25 @@
 package me.principality.ktsql.protocol.mysql.packet.command.query
 
 import me.principality.ktsql.protocol.mysql.helper.PacketHandleHelper
+import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
-import me.principality.ktsql.protocol.mysql.packet.command.CommandPacket
 import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
 import java.util.*
 
-class ComStmtExecutePacket: CommandPacket {
+class ComStmtExecutePacket: QueryCommandPacket {
     constructor(sequenceId: Int, connectionId: Int, payload: MySQLPacketPayload, handler: PacketHandleHelper) {
 
     }
 
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
+        TODO("not implemented")
+    }
+
+    override fun next(): Boolean {
+        TODO("not implemented")
+    }
+
+    override fun getResultValue(): MySQLPacket {
         TODO("not implemented")
     }
 
