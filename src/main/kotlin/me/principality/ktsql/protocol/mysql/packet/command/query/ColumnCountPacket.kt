@@ -7,6 +7,11 @@ class ColumnCountPacket: MySQLPacket {
     private val sequenceId: Int
     private val columnCount: Int
 
+    constructor(id: Int, count: Int) {
+        sequenceId = id
+        columnCount = count
+    }
+
     constructor(payload: MySQLPacketPayload) {
         this.sequenceId = payload.readInt1()
         this.columnCount = payload.readInt1()

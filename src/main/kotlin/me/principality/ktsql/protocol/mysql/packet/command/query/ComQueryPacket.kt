@@ -6,6 +6,7 @@ import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePacket
 import me.principality.ktsql.protocol.mysql.packet.command.CommandType
 import me.principality.ktsql.protocol.mysql.helper.SelectParamParser2
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
+import me.principality.ktsql.protocol.mysql.packet.generic.EofPacket
 import me.principality.ktsql.sqlexec.SqlUtil
 import java.util.*
 
@@ -17,7 +18,8 @@ class ComQueryPacket : QueryCommandPacket {
     private val sql: String
     private val sqlExecHandler: PacketHandleHelper
     private val parser: SelectParamParser2
-    private val resultSetRowPackets: List<TextResultSetRowPacket> = listOf()
+    private val resultSetRowPackets: MutableList<TextResultSetRowPacket> = mutableListOf()
+    private var resultSetIndex: Int = 0
 
     constructor(sequenceId: Int, connectionId: Int, payload: MySQLPacketPayload, handler: PacketHandleHelper) {
         this.sequenceId = sequenceId
@@ -36,6 +38,17 @@ class ComQueryPacket : QueryCommandPacket {
                 // 对select @@a as a进行处理
                 // 1. 生成返回的表头CommandResponsePackets
                 // 2. 把数据保存到resultSetRowPackets
+                // 3. 返回处理结果，由上层逻辑把包写到目标客户端
+                val columnCountPacket = ColumnCountPacket(sequenceId + 1, result.size)
+                val columnDefinition41Packets: MutableList<ColumnDefinition41Packet> = mutableListOf()
+                for (element in result) {
+                    columnDefinition41Packets.add(createColumnDefinition41Packet(element))
+                    resultSetRowPackets.add(createTextResultSetRowPacket(element))
+                }
+                val eofPacket = EofPacket(sequenceId + 1)
+                val packets = QueryResponsePackets(columnCountPacket, columnDefinition41Packets, eofPacket)
+
+                return Optional.of(packets)
             }
         }
 
@@ -43,11 +56,17 @@ class ComQueryPacket : QueryCommandPacket {
     }
 
     override fun next(): Boolean {
-        TODO("not implemented")
+        // 这里实现对resultSetRowPackets结果的遍历
+        if (resultSetIndex >= resultSetRowPackets.size) {
+            return false
+        }
+        ++resultSetIndex
+        return true
     }
 
     override fun getResultValue(): MySQLPacket {
-        TODO("not implemented")
+        // 这里实现对resultSetRowPackets的值读取
+        return resultSetRowPackets.get(resultSetIndex)
     }
 
     override fun getSequenceId(): Int {
@@ -63,5 +82,13 @@ class ComQueryPacket : QueryCommandPacket {
         payload.writeInt1(CommandType.COM_QUERY.value)
         payload.writeStringEOF(sql)
         return payload
+    }
+
+    private fun createColumnDefinition41Packet(pair: Pair<String, String>): ColumnDefinition41Packet {
+        TODO()
+    }
+
+    private fun createTextResultSetRowPacket(pair: Pair<String, String>): TextResultSetRowPacket {
+        TODO()
     }
 }

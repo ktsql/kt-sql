@@ -17,7 +17,7 @@ import java.util.*
  *
  * 对select操作，返回的是QueryResponsePackets，包含ZeroOrMore个结果
  *
- * ResultSet由多个Packet组成
+ * ResultSet(QueryResponsePackets)由多个Packet组成
  * - ResultSet MetaData
  *   - 1 Column count packet
  *   - n Column Definition packet
