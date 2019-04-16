@@ -1,5 +1,6 @@
 package me.principality.ktsql
 
+import me.principality.ktsql.utils.KotlinVertx
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

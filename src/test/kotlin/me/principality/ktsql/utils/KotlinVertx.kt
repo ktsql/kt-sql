@@ -1,9 +1,12 @@
-package me.principality.ktsql
+package me.principality.ktsql.utils
 
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Vertx
 import io.vertx.kotlin.core.VertxOptions
 
+/**
+ * 对底层的工具类进行测试
+ */
 class KotlinVertx {
 
     var vertx: Vertx

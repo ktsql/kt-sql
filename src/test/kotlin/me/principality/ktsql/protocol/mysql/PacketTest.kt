@@ -3,6 +3,9 @@ package me.principality.ktsql.protocol.mysql
 import me.principality.ktsql.protocol.mysql.packet.constant.ServerErrorCode
 import org.junit.Test
 
+/**
+ * 建立对packet的测试代码
+ */
 class PacketTest {
 
     /**

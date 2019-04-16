@@ -7,6 +7,9 @@ import java.sql.DriverManager
 import java.sql.ResultSet
 import kotlin.test.assertEquals
 
+/**
+ * 使用直接创建SqlHandler访问底层的方式，不经过协议层，对SQL语句的支撑度进行测试
+ */
 class CalciteTest {
     private val TEST_TABLE_NAME = "HBASE.t" // "HBASE.t"
     private val TEST_TABLE_INDEX = "idx"

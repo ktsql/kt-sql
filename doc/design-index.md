@@ -1,6 +1,15 @@
-#index
+# index
 
-## 二级索引
+## 二级索引实现
+
+1. 创建一个对应于index的hbase table，如table_name.index_name
+2. 创建连接，获得table, table.index的读写权限，初始化事务读写环节
+3. 写入时，先获取hbase puts的信息，创建对应的index，同时写入目标表和索引表
+4. 读取时，如果是有索引的表，先根据索引读取rowkey，再读取数据
+
+在分布式环境下，二级索引也存在节点分布（需解决CAP）、数据规模大、保存不在本地的问题
+
+## 二级索引分类
 
 ### KV型二次索引
 
@@ -27,6 +36,12 @@ Bitmap索引，把键映射成bitmap，建立bitmap和rowkey的对应关系，Bi
 则是把整个row的必要值映射成bitmap，再建立bitmap和rowkey的对应关系。
 Bitmap带来的优越性：索引空间小，部分条件处理只需索引即可计算。
 
+bitmap在以下场景，有较快的记录筛选速度：
+1. 对集合求交集、并集
+2. 根据特定值检索
+3. 求rank
+4. 集合中是否包含
+
 https://github.com/RoaringBitmap/RoaringBitmap roaringbitmap
 https://hexiaoqiao.github.io/blog/2016/11/27/exact-count-and-global-dictionary-of-apache-kylin/ kylin的bitmap
 https://github.com/shunfei/sfmind/blob/master/indexr_white_paper/indexr_white_paper.md indexr的白皮书
@@ -37,10 +52,6 @@ http://druid.io/blog/2012/09/21/druid-bitmap-compression.html druid技术文
 https://zhuanlan.zhihu.com/p/20119525 pinot的bitmap
 
 实现的考虑：bitmap的全局编码信息保存在内存中，索引信息保存在存储层
+bitmap的使用必须要考虑把字符值类型，映射到bitmap编码，在一个分布式环境，需要特定的实现
 
-## 二级索引实现
 
-1. 创建一个对应于index的hbase table，如table_name.index_name
-2. 创建连接，获得table, table.index的读写权限，初始化事务读写环节
-3. 写入时，先获取hbase puts的信息，创建对应的index，同时写入目标表和索引表
-4. 读取时，如果是有索引的表，先根据索引读取rowkey，再读取数据

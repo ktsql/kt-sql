@@ -1,4 +1,4 @@
-package me.principality.ktsql.protocol.mysql
+package me.principality.ktsql.protocol.mysql.parser
 
 import me.principality.ktsql.protocol.mysql.helper.SelectParamParser2
 import org.jparsec.Parser
