@@ -32,7 +32,7 @@ class ComQueryPacket : QueryCommandPacket {
      * MySQL的系统参数查询，calcite并不支持，所以在这里要做特殊处理。
      */
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
-        if (sql.contains("select", true)) {
+        if (sql.contains("select", true) && sql.contains("@@")) {
             val result = parser.parse(sql)
             if (result.isNotEmpty()) {
                 // 对select @@a as a进行处理
