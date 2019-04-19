@@ -99,12 +99,13 @@ class MySQLHandler : Handler<NetSocket> {
             val payload = MySQLPacketPayload(buffer)
             val packet = getCommandPakcet(payload, sqlExecHandler)
             val responses = packet.execute(sqlExecHandler)
-            if (!responses.isPresent()) {
-                return // 这里按理不应该有空的情况
+            if (!responses.isPresent) {
+                return // 这里按理不应该有空的情况，是否应该抛异常？
             }
             for (each in responses.get().packets) {
                 remoteSocket.write(each.transferTo(MySQLPacketPayload(each.getPacketSize(), packet.getSequenceId())).byteBuffer)
             }
+            // 针对查询包的特殊处理
             if (packet is QueryCommandPacket
                     && responses.get().getHeaderPacket() !is OkPacket
                     && responses.get().getHeaderPacket() !is ErrPacket) {

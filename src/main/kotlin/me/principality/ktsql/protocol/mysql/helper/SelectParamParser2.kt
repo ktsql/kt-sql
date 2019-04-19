@@ -77,10 +77,10 @@ class SelectParamParser2 {
             aliasName = it as String
 
             if (sysParam != "") {
-                val pair = Pair<String, String>(sysParam, aliasName)
+                val pair = Pair<String, String>("@@$sysParam", aliasName)
                 resultList.add(pair)
             } else {
-                val pair = Pair<String, String>("$sysParam1.$sysParam2", aliasName)
+                val pair = Pair<String, String>("@@$sysParam1.$sysParam2", aliasName)
                 resultList.add(pair)
             }
 
@@ -107,10 +107,10 @@ class SelectParamParser2 {
             aliasName2 = it as String
 
             if (sysParam != "") {
-                val pair = Pair<String, String>(sysParam, "$aliasName1.$aliasName2")
+                val pair = Pair<String, String>("@@$sysParam", "$aliasName1.$aliasName2")
                 resultList.add(pair)
             } else {
-                val pair = Pair<String, String>("$sysParam1.$sysParam2", "$aliasName.$aliasName2")
+                val pair = Pair<String, String>("@@$sysParam1.$sysParam2", "$aliasName.$aliasName2")
                 resultList.add(pair)
             }
             it

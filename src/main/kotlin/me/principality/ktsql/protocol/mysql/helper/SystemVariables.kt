@@ -33,7 +33,7 @@ object SystemVariables {
         keyvalueMap.put("@@wait_timeout", 28800)
     }
 
-    fun getValue(key: String): String {
-        return keyvalueMap.get(key).toString()
+    fun getValue(key: String): Any? {
+        return keyvalueMap.get(key)
     }
 }

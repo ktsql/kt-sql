@@ -5,7 +5,9 @@ import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
 import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
 import me.principality.ktsql.protocol.mysql.packet.command.CommandType
 import me.principality.ktsql.protocol.mysql.helper.SelectParamParser2
+import me.principality.ktsql.protocol.mysql.helper.SystemVariables
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
+import me.principality.ktsql.protocol.mysql.packet.command.QueryResponsePackets
 import me.principality.ktsql.protocol.mysql.packet.generic.EofPacket
 import me.principality.ktsql.sqlexec.SqlUtil
 import java.util.*
@@ -29,11 +31,20 @@ class ComQueryPacket : QueryCommandPacket {
     }
 
     /**
+     * https://dev.mysql.com/doc/internals/en/com-query-response.html#packet-COM_QUERY_Response
+     *
+     * COM_QUERY_Response:
+     * - ERR_Packet
+     * - OK_Packet
+     * - Protocol::LOCAL_INFILE_Request
+     * - ProtocolText::Resultset
+     *
      * MySQL的系统参数查询，calcite并不支持，所以在这里要做特殊处理。
      */
     override fun execute(helper: PacketHandleHelper): Optional<CommandResponsePackets> {
         if (sql.contains("select", true) && sql.contains("@@")) {
             val result = parser.parse(sql)
+            // 这里按理来说，不应该有查询不出来正确结果的私情
             if (result.isNotEmpty()) {
                 // 对select @@a as a进行处理
                 // 1. 生成返回的表头CommandResponsePackets
@@ -86,6 +97,10 @@ class ComQueryPacket : QueryCommandPacket {
 
     private fun createColumnDefinition41Packet(pair: Pair<String, String>): ColumnDefinition41Packet {
         TODO()
+        val value = SystemVariables.getValue(pair.first)
+        if (value != null) {
+
+        }
     }
 
     private fun createTextResultSetRowPacket(pair: Pair<String, String>): TextResultSetRowPacket {

@@ -7,6 +7,9 @@ import me.principality.ktsql.protocol.mysql.packet.command.admin.ComPingPacket
 import me.principality.ktsql.protocol.mysql.packet.command.admin.ComQuitPacket
 import me.principality.ktsql.protocol.mysql.packet.command.query.*
 
+/**
+ * 命令分发器，根据客户端请求生成相应的处理命令
+ */
 object CommandPacketFactory {
     fun createCommandPacket(sequenceId: Int,
                             connectionId: Int,

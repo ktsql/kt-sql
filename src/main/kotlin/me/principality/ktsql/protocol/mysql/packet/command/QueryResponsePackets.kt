@@ -1,6 +1,7 @@
-package me.principality.ktsql.protocol.mysql.packet.command.query
+package me.principality.ktsql.protocol.mysql.packet.command
 
-import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
+import me.principality.ktsql.protocol.mysql.packet.command.query.ColumnCountPacket
+import me.principality.ktsql.protocol.mysql.packet.command.query.ColumnDefinition41Packet
 import me.principality.ktsql.protocol.mysql.packet.constant.ColumnType
 import me.principality.ktsql.protocol.mysql.packet.generic.EofPacket
 import java.util.*
@@ -15,7 +16,7 @@ import java.util.*
  * 3. LocalInFilePacket
  * 4. ResultSet (QueryResponsePackets)
  *
- * 对select操作，返回的是QueryResponsePackets，包含ZeroOrMore个结果
+ * 对select操作，如果成功执行，返回的是QueryResponsePackets，包含ZeroOrMore个结果
  *
  * ResultSet(QueryResponsePackets)由多个Packet组成
  * - ResultSet MetaData

@@ -38,3 +38,8 @@ http://www.cnblogs.com/foxmailed/p/3887430.html
 https://wenku.baidu.com/view/c1264b3a1eb91a37f1115cbf.html
 
 如果tephra的核心逻辑实现没有问题，percolator论文泛泛读一下即可
+
+## 事务实现的层次
+
+foundationdb, spanner的设计，是把事务放在存储层实现
+其他常见的NoSQL，并不把跨行事务认为是存储层需要支持的功能。
