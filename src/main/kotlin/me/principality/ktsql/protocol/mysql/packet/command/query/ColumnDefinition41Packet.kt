@@ -9,6 +9,8 @@ import java.sql.ResultSetMetaData
 import java.sql.SQLException
 
 /**
+ * https://dev.mysql.com/doc/internals/en/com-query-response.html#column-definition
+ *
  * string<lenenc> catalog (always 'def')
  * string<lenenc> schema
  * string<lenenc> table alias

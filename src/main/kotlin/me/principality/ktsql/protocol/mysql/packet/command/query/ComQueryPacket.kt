@@ -1,12 +1,12 @@
 package me.principality.ktsql.protocol.mysql.packet.command.query
 
 import me.principality.ktsql.protocol.mysql.helper.PacketHandleHelper
-import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
-import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
-import me.principality.ktsql.protocol.mysql.packet.command.CommandType
 import me.principality.ktsql.protocol.mysql.helper.SelectParamParser2
 import me.principality.ktsql.protocol.mysql.helper.SystemVariables
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
+import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
+import me.principality.ktsql.protocol.mysql.packet.command.CommandResponsePackets
+import me.principality.ktsql.protocol.mysql.packet.command.CommandType
 import me.principality.ktsql.protocol.mysql.packet.command.QueryResponsePackets
 import me.principality.ktsql.protocol.mysql.packet.generic.EofPacket
 import me.principality.ktsql.sqlexec.SqlUtil
@@ -33,7 +33,7 @@ class ComQueryPacket : QueryCommandPacket {
     /**
      * https://dev.mysql.com/doc/internals/en/com-query-response.html#packet-COM_QUERY_Response
      *
-     * COM_QUERY_Response:
+     * The query-response packet is a meta packet which can be one of:
      * - ERR_Packet
      * - OK_Packet
      * - Protocol::LOCAL_INFILE_Request
@@ -52,9 +52,15 @@ class ComQueryPacket : QueryCommandPacket {
                 // 3. 返回处理结果，由上层逻辑把包写到目标客户端
                 val columnCountPacket = ColumnCountPacket(sequenceId + 1, result.size)
                 val columnDefinition41Packets: MutableList<ColumnDefinition41Packet> = mutableListOf()
+                var columnDefSeqNo = sequenceId + 1
                 for (element in result) {
-                    columnDefinition41Packets.add(createColumnDefinition41Packet(element))
-                    resultSetRowPackets.add(createTextResultSetRowPacket(element))
+                    columnDefSeqNo++
+                    columnDefinition41Packets.add(createColumnDefinition41Packet(columnDefSeqNo, element))
+                }
+                var txtResultSetRowSeqNo = columnDefSeqNo
+                for (element in result) {
+                    txtResultSetRowSeqNo++
+                    resultSetRowPackets.add(createTextResultSetRowPacket(txtResultSetRowSeqNo, element))
                 }
                 val eofPacket = EofPacket(sequenceId + 1)
                 val packets = QueryResponsePackets(columnCountPacket, columnDefinition41Packets, eofPacket)
@@ -95,15 +101,30 @@ class ComQueryPacket : QueryCommandPacket {
         return payload
     }
 
-    private fun createColumnDefinition41Packet(pair: Pair<String, String>): ColumnDefinition41Packet {
-        TODO()
-        val value = SystemVariables.getValue(pair.first)
-        if (value != null) {
+    private fun createColumnDefinition41Packet(seqNo: Int, pair: Pair<String, String>): ColumnDefinition41Packet {
+        if (SystemVariables.keyValueMap.containsKey(pair.first)) {
+            val length = SystemVariables.keyLengthMap[pair.first] ?: throw IllegalArgumentException()
+            val type = SystemVariables.keyTypeMap[pair.first] ?: throw IllegalArgumentException()
 
+            return ColumnDefinition41Packet(seqNo,
+                    "", // schema: String
+                    "", // table: String
+                    "", // orgTable: String
+                    pair.second, // name: String
+                    pair.first, // orgName: String
+                    length, // columnLength: Int
+                    type, // columnType: ColumnType
+                    0 // decimals: Int
+            )
         }
+        throw IllegalArgumentException()
     }
 
-    private fun createTextResultSetRowPacket(pair: Pair<String, String>): TextResultSetRowPacket {
-        TODO()
+    private fun createTextResultSetRowPacket(seqNo: Int, pair: Pair<String, String>): TextResultSetRowPacket {
+        val value = SystemVariables.getValue(pair.first)
+        if (value != null) {
+            return TextResultSetRowPacket(seqNo, value.toString())
+        }
+        throw IllegalArgumentException()
     }
 }

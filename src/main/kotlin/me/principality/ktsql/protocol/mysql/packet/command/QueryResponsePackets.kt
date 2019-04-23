@@ -8,9 +8,10 @@ import java.util.*
 
 /**
  * https://dev.mysql.com/doc/internals/en/com-query-response.html#packet-COM_QUERY_Response
+ * https://mariadb.com/kb/en/library/com_query/
  * https://mariadb.com/kb/en/library/resultset/
  *
- * ComQueryResponsePacket会返回以下几个类型的包，客户端是通过packet head来判断并进行处理的：
+ * ComQueryPacket会返回以下几个类型的包，客户端是通过packet head(first byte)来判断并进行处理的：
  * 1. ErrPacket
  * 2. OkPacket
  * 3. LocalInFilePacket

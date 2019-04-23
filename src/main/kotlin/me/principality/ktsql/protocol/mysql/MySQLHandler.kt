@@ -106,18 +106,19 @@ class MySQLHandler : Handler<NetSocket> {
                 remoteSocket.write(each.transferTo(MySQLPacketPayload(each.getPacketSize(), packet.getSequenceId())).byteBuffer)
             }
             // 针对查询包的特殊处理
+            // 1. 返回的结果是column definitions
+            // 2. 结果数据保存在packet中（执行execute的时候，把结果保存下来）
+            // TODO 这个设计是很丑陋的，可改进
             if (packet is QueryCommandPacket
                     && responses.get().getHeaderPacket() !is OkPacket
                     && responses.get().getHeaderPacket() !is ErrPacket) {
-                writeMoreResults(packet as QueryCommandPacket, responses.get().packets.size)
+                writeMoreResults(packet, responses.get().packets.size)
             }
         } catch (ex: SQLException) {
-            // CHECKSTYLE:OFF
             logger.debug { ex }
             val packet = ErrPacket(++currentSequenceId, ex)
             remoteSocket.write(packet.transferTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)
         } catch (ex: Exception) {
-            // CHECKSTYLE:ON
             logger.debug(ex.message, ex)// { ex }
             val packet = ErrPacket(1, ServerErrorCode.ER_STD_UNKNOWN_EXCEPTION, ex.message!!)
             remoteSocket.write(packet.transferTo(MySQLPacketPayload(packet.getPacketSize(), packet.getSequenceId())).byteBuffer)

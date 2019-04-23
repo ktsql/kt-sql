@@ -3,6 +3,11 @@ package me.principality.ktsql.protocol.mysql.packet.command.query
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
 
+/**
+ * ResultSet的组成包
+ * https://mariadb.com/kb/en/library/resultset/
+ * https://mariadb.com/kb/en/library/resultset/#column-count-packet
+ */
 class ColumnCountPacket: MySQLPacket {
     private val sequenceId: Int
     private val columnCount: Int

@@ -4,6 +4,13 @@ import me.principality.ktsql.protocol.mysql.packet.MySQLPacket
 import me.principality.ktsql.protocol.mysql.packet.MySQLPacketPayload
 import java.util.*
 
+/**
+ * ResultSet的组成包之一
+ * https://mariadb.com/kb/en/library/resultset/
+ * https://mariadb.com/kb/en/library/resultset-row/
+ *
+ * TextResultSetRow，就是一行字符串
+ */
 class TextResultSetRowPacket : MySQLPacket {
     private val NULL = 0xfb
     private var sequenceId: Int
@@ -15,6 +22,12 @@ class TextResultSetRowPacket : MySQLPacket {
         for (i in 0 until columnCount) {
             data.add(payload.readStringLenenc())
         }
+    }
+
+    constructor(seqId: Int, value: String) {
+        sequenceId = seqId
+        data = ArrayList(1)
+        data.add(value)
     }
 
     override fun getSequenceId(): Int {
