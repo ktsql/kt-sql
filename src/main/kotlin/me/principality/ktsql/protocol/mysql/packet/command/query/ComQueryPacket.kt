@@ -103,8 +103,8 @@ class ComQueryPacket : QueryCommandPacket {
 
     private fun createColumnDefinition41Packet(seqNo: Int, pair: Pair<String, String>): ColumnDefinition41Packet {
         if (SystemVariables.keyValueMap.containsKey(pair.first)) {
-            val length = SystemVariables.keyLengthMap[pair.first] ?: throw IllegalArgumentException()
-            val type = SystemVariables.keyTypeMap[pair.first] ?: throw IllegalArgumentException()
+            val length = SystemVariables.getLength(pair.first) ?: throw IllegalArgumentException()
+            val type = SystemVariables.getType(pair.first) ?: throw IllegalArgumentException()
 
             return ColumnDefinition41Packet(seqNo,
                     "", // schema: String
