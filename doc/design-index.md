@@ -37,10 +37,10 @@ Bitmap索引，把键映射成bitmap，建立bitmap和rowkey的对应关系，Bi
 Bitmap带来的优越性：索引空间小，部分条件处理只需索引即可计算。
 
 bitmap在以下场景，有较快的记录筛选速度：
-1. 对集合求交集、并集
-2. 根据特定值检索
-3. 求rank
-4. 集合中是否包含
+1. 根据特定值多维检索
+2. 求rank
+3. 集合中是否包含
+4. 对集合求交集、并集
 
 https://github.com/RoaringBitmap/RoaringBitmap roaringbitmap
 https://hexiaoqiao.github.io/blog/2016/11/27/exact-count-and-global-dictionary-of-apache-kylin/ kylin的bitmap
@@ -54,7 +54,7 @@ https://zhuanlan.zhihu.com/p/20119525 pinot的bitmap
 实现的考虑：bitmap的全局编码信息保存在内存中，索引信息保存在存储层
 bitmap的使用必须要考虑把字符值类型，映射到bitmap编码，在一个分布式环境，需要特定的实现
 
-bitmap编码有两种方法：
+bitmap分布式编码有两种方法：
 - 每节点采用算法独立计算
 - 提供分布式服务提供bitmap编码服务
 
